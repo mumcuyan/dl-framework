@@ -1,7 +1,7 @@
 from .linear import Linear
 from .activations import ReLU, Sigmoid, Tanh
-from .losses import LossMSE, LossSoftmaxCrossEntropy
-from .optimizers import SGD
+from losses.loss_crossentropy import LossMSE, LossSoftmaxCrossEntropy
+from optim.sgd import SGD
 from .sequential import Sequential
 
 __all__ = ['Linear',

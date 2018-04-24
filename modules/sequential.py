@@ -1,82 +1,55 @@
 from collections import OrderedDict
 from .module import Module
-from .losses import LossModule
 import torch
-
-# TODO: make self.modules private create a generator for optimizer .train()
 
 
 class Sequential(Module):
 
-    def __init__(self):
+    def __init__(self, modules=None):
         super(Sequential, self).__init__()
-        self.modules = OrderedDict()
-        self.loss_func = None
+        self._modules = OrderedDict()
+
+        if isinstance(modules, OrderedDict):
+            for name, module in modules.items():
+                self.add_module(module, name)
+        elif isinstance(modules, list):
+            for idx, module in enumerate(modules):
+                self.add_module(module, str(idx))
+        else:
+            raise TypeError('Given parameter {} is not valid '.format(type(modules)))
+
         self.output = None
-        self.output_before_loss = None
 
-    def set_loss_function(self, ):
-        pass
+    def add_module(self, module: Module, name):
 
-    def add_module(self, module, name=None):
+        if module is None or not isinstance(module, Module):
+            raise ValueError('Given object type {} is not Module '.format(type(module)))
+        if name is None or len(name) == 0:
+            raise ValueError('Given name {} is not valid'.format(name))
 
-        # TODO: after removing loss module, remove or LossModule instance
-        # and
-        #  if module is None or (not isinstance(module, Module) and not isinstance(module, LossModule)):
-        #    raise ValueError('Given object type {} is not Module '.format(type(module)))
-
-        if name is None:
-            name = len(self.modules)
-
-        self.modules[name] = module
+        self._modules[name] = module
 
     def forward(self, input: torch.FloatTensor):
 
         tmp_input = input
-        if input.dim() == 1:
+        if tmp_input.dim() == 1:
             tmp_input = tmp_input.unsqueeze(0)
 
-        for module in self.modules.values():
-            if isinstance(module, LossModule):
-                self.output_before_loss = tmp_input
+        for module in self._modules.values():
             tmp_input = module.forward(tmp_input)
 
         self.output = tmp_input
-        if self.output_before_loss is None:
-            self.output_before_loss = self.output
 
-        # TODO ?
-        _, self.prediction = self.output_before_loss.max(1)
+        # TODO ?, predict
+        _, self.prediction = self.output.max(1)
 
-        return tmp_input
+        return self.output
 
-    # TODO: delete this part
-    def forward_without_loss(self, input: torch.FloatTensor):
-
-        tmp_input = input
-        if input.dim() == 1:
-            tmp_input = tmp_input.unsqueeze(0)
-
-        for module in self.modules.values():
-            if isinstance(module, LossModule):
-                self.output_before_loss = tmp_input
-            else:
-                tmp_input = module.forward(tmp_input)
-
-        self.output = tmp_input
-        if self.output_before_loss is None:
-            self.output_before_loss = self.output
-        _, self.prediction = self.output_before_loss.max(1)
-
-        return tmp_input
-
-    def backward(self, *gradwrtoutput):
-
-        if len(gradwrtoutput) > 0:
-            raise ValueError("Backward @Sequential does not exists")
+    def backward(self):
 
         gradwrtoutputt = torch.FloatTensor([[1]])
-        for module in reversed(list(self.modules.values())):
+
+        for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
         self.output = None
@@ -84,36 +57,27 @@ class Sequential(Module):
 
         return gradwrtoutputt
 
-    def predict(self, input, is_force=True):
-        if is_force or self.prediction is None:
-            if is_force or self.output is None:
-                self.forward_without_loss(input)
+    def predict(self, input):
+
+        if self.prediction is None:
+            if self.output is None:
+                pass
+                # self.forward_without_loss(input)
             else:
                 _, self.prediction = self.output.max(1)
 
         return self.prediction
 
-    def accuracy(self, input, target, is_force=True):
-        self.predict(input, is_force)
+    def accuracy(self, input, target):
+        self.predict(input)
         return (self.prediction == target).type(torch.FloatTensor).mean(), self.prediction
 
     def print_model(self):
-        for module in self.modules:
+        for module in self._modules:
             print(module)
 
-
-"""
-def backward():
-
-if len(gradwrtoutput) == 0:
-    gradwrtoutputt = torch.FloatTensor([[1]])
-else:
-    if gradwrtoutput[0].dim() == 1:
-        gradwrtoutputt = gradwrtoutput[0].unsqueeze(0)
-    else:
-        gradwrtoutputt = gradwrtoutput[0]
-
-
-:param gradwrtoutput: 
-:return: 
-"""
+    @property
+    def trainable_modules(self):
+        for module in self._modules.values():
+            if module.trainable:
+                yield module

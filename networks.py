@@ -1,39 +1,33 @@
+from modules.sequential import Sequential
 from modules.linear import Linear
 from modules.activations import ReLU, Sigmoid, Tanh
-from modules.losses import LossMSE, LossSoftmaxCrossEntropy
-from modules.optimizers import SGD
-from modules.sequential import Sequential
+from losses import LossMSE, LossSoftmaxCrossEntropy
+from optim.sgd import SGD
 
 
 def default_net_1(input, target, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):
-    lin1 = Linear(num_of_neurons[0], num_of_neurons[1])
-    relu1 = ReLU()
-    lin2 = Linear(num_of_neurons[1], num_of_neurons[2])
-    relu2 = ReLU()
-    lin3 = Linear(num_of_neurons[2], num_of_neurons[3])
-    relu3 = ReLU()
-    lin4 = Linear(num_of_neurons[3], num_of_neurons[4])
-    mse = LossMSE(target)  # TODO: what is target and how it's used in loss
+    model = Sequential(
+        [
+            Linear(num_of_neurons[0], num_of_neurons[1]),
+            ReLU(),
+            Linear(num_of_neurons[1], num_of_neurons[2]),
+            ReLU(),
+            Linear(num_of_neurons[2], num_of_neurons[3]),
+            ReLU(),
+            Linear(num_of_neurons[3], num_of_neurons[4])
+        ]
+    )
 
-    seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(relu1, name="ReLU1")
-    seq.add_module(lin2, name="Lin2")
-    seq.add_module(relu2, name="ReLU2")
-    seq.add_module(lin3, name="Lin3")
-    seq.add_module(relu3, name="ReLU3")
-    seq.add_module(lin4, name="Lin4")
-    seq.add_module(mse, name="MSE")
+    mse = LossMSE(target)
 
     # integrate loss function to optimizer like in Keras
-    sgd = SGD(lr, momentum_coef)
-    print(type(input), " -- ", type(seq))
+    sgd = SGD(mse, lr, momentum_coef)
+    print(type(input), " -- ", type(model))
 
     # TODO verbose
-    #
-    sgd.train(input, seq, num_of_epochs)
+    sgd.train(model, input, num_of_epochs, verbose=0)
 
-    return seq, mse.loss_logging
+    return model, mse.loss_logging
 
 
 def default_net_2(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):
