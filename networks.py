@@ -2,7 +2,7 @@ from modules.sequential import Sequential
 from modules.linear import Linear
 from modules.activations import ReLU, Sigmoid, Tanh
 from losses import LossMSE, LossSoftmaxCrossEntropy
-from optim.sgd import SGD
+from optimizers.sgd import SGD
 
 
 def default_net_1(input, target, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):

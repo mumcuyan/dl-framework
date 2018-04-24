@@ -39,9 +39,7 @@ class Linear(Module):
 
     def forward(self, tensor_in: torch.FloatTensor):
 
-        if tensor_in.dim() == 1:
-            print("@tensor_in.dim(): " + tensor_in.dim())
-            tensor_in = tensor_in.unsqueeze(0)
+        self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
 
         self.input = tensor_in
         tensor_out = torch.mm(tensor_in, self._params["weight"])
@@ -53,27 +51,23 @@ class Linear(Module):
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
 
-        if gradwrtoutput.dim() == 1:
-            print("@gradwrtoutput.dim() ", gradwrtoutput.dim())
-            gradwrtoutput = gradwrtoutput.unsqueeze(0)
+        self.dim_check("gradwrtoutput backward@Linear", gradwrtoutput, dim=2)
 
         if self.is_bias:
             self._grads["bias"] = torch.mv(gradwrtoutput.transpose(0, 1), torch.ones(gradwrtoutput.shape[0]))
 
         self._grads["weight"] = torch.mm(self.input.transpose(0, 1), gradwrtoutput)
-
         return torch.mm(gradwrtoutput, self._params["weight"].transpose(0, 1))
 
     @property
-    def param(self):
+    def params(self):
         keys = ['weight', 'bias']
         for key in keys:
             if self._params[key] is not None:
-                yield key, self._params['key']
-    """
-        def param(self):
-        return [(self._params["weight"], self._grads["weight"]), (self._params["bias"], self._grads["bias"])]
-    """
+                yield key, self._params[key]
+
+    def grads(self, key_name):
+        return self._grads[key_name]
 
     def set_param(self, name, value):
 
@@ -88,6 +82,12 @@ class Linear(Module):
                                  format(value.shape, self._params[name]))
 
         self._params[name] = value
+
+
+"""
+        def param(self):
+        return [(self._params["weight"], self._grads["weight"]), (self._params["bias"], self._grads["bias"])]
+"""
 
 """
     def set_parameters(self, new_weight, new_bias=None):

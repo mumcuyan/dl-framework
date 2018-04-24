@@ -1,4 +1,6 @@
+from . import Loss
 import torch
+
 
 class LossSoftmaxCrossEntropy(Loss):
 

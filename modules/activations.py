@@ -15,11 +15,6 @@ class ActivationModule(Module):
     def backward(self, *gradwrtoutput):
         raise NotImplementedError
 
-    def dim_check(self, tensor_context: str, tensor_: torch.FloatTensor, dim: int):
-        if tensor_.dim() != dim:
-            raise ShapeException('Given {} dimension({}), required dimension is {}'
-                                 .format(tensor_context, tensor_.dim(), dim))
-
 
 class ReLU(ActivationModule):
 
@@ -51,13 +46,13 @@ class ReLU(ActivationModule):
 
 class Sigmoid(ActivationModule):
 
-    # training is problematic, idk why
+    # TODO: training is problematic, idk why
     def __init__(self):
         super(Sigmoid, self).__init__()
         self.output = None
 
     def forward(self, tensor_in: torch.FloatTensor):
-        super().dim_check("forward input", tensor_in, 2)
+        super().dim_check("forward input @ Sigmoid", tensor_in, 2)
         tensor_out = torch.sigmoid(tensor_in)
         # tensor_out = 1/(1+torch.exp(-tensor_in))
 
@@ -65,13 +60,10 @@ class Sigmoid(ActivationModule):
         return tensor_out
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
-
-        if gradwrtoutput.dim() != 2:
-            raise ShapeException('Given gradwrtoutput dimension({}), required dimension is 2'
-                                 .format(gradwrtoutput.dim()))
+        super().dim_check("backward grad @ Sigmoid", gradwrtoutput, 2)
 
         dsigmoid = self.output * (1 - self.output)
-
+        self.output = None  # reset output None
         # return torch.mm(gradwrtoutput, dsigmoid.transpose(0,1))
         return gradwrtoutput * dsigmoid
 
@@ -84,7 +76,7 @@ class Softmax(ActivationModule):
         self.output = None
 
     def forward(self, tensor_in: torch.FloatTensor):
-        super().dim_check("forward input", tensor_in, 2)
+        super().dim_check("forward input @ Softmax", tensor_in, 2)
 
         row_maxs, _ = tensor_in.max(1)
         x = torch.exp(tensor_in - row_maxs.repeat(tensor_in.shape[1], 1).transpose(0, 1))
@@ -96,10 +88,9 @@ class Softmax(ActivationModule):
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
         # not implemented
-        if gradwrtoutput.dim() == 1:
-            gradwrtoutput = gradwrtoutput.unsqueeze(0)
-
+        super().dim_check("backward grad @ Softmax", gradwrtoutput, 2)
         dsoftmax = self.output * (1 - self.output)
+        self.output = None  # reset output None
 
         return gradwrtoutput * dsoftmax
 
@@ -111,16 +102,16 @@ class Tanh(ActivationModule):
         self.output = None
 
     def forward(self, tensor_in: torch.FloatTensor):
-        super().dim_check("forward input", tensor_in, 2)
+        super().dim_check("forward input @ Tanh", tensor_in, 2)
 
         tensor_out = torch.tanh(tensor_in)
         self.output = tensor_out
         return tensor_out
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
-
-        super().dim_check("backward grad", gradwrtoutput, 2)
+        super().dim_check("backward grad @ Tanh", gradwrtoutput, 2)
         dtanh = (1 + self.output) * (1 - self.output)
+        self.output = None  # reset output None
 
         # return torch.mm(gradwrtoutput, dtanh.transpose(0,1))
         return gradwrtoutput * dtanh

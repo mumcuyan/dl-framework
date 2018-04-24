@@ -6,17 +6,18 @@ import torch
 class Sequential(Module):
 
     def __init__(self, modules=None):
-        super(Sequential, self).__init__()
+        super(Sequential, self).__init__(trainable=False)
         self._modules = OrderedDict()
 
-        if isinstance(modules, OrderedDict):
-            for name, module in modules.items():
-                self.add_module(module, name)
-        elif isinstance(modules, list):
-            for idx, module in enumerate(modules):
-                self.add_module(module, str(idx))
-        else:
-            raise TypeError('Given parameter {} is not valid '.format(type(modules)))
+        if modules is not None:
+            if isinstance(modules, OrderedDict):
+                for name, module in modules.items():
+                    self.add_module(module, name)
+            elif isinstance(modules, list):
+                for idx, module in enumerate(modules):
+                    self.add_module(module, str(idx))
+            else:
+                raise TypeError('Given parameter {} is not valid '.format(type(modules)))
 
         self.output = None
 
@@ -39,15 +40,12 @@ class Sequential(Module):
             tmp_input = module.forward(tmp_input)
 
         self.output = tmp_input
-
-        # TODO ?, predict
+        # TODO: predict ?
         _, self.prediction = self.output.max(1)
 
         return self.output
 
-    def backward(self):
-
-        gradwrtoutputt = torch.FloatTensor([[1]])
+    def backward(self, gradwrtoutputt):
 
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
