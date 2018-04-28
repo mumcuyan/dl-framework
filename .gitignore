@@ -136,7 +136,7 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -201,3 +201,4 @@ venv.bak/
 .idea/*
 
 # End of https://www.gitignore.io/api/macos,python,pycharm,jupyternotebook
+sample.log
