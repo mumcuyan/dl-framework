@@ -19,6 +19,7 @@ class LossMSE(Loss):
                 output = torch.pow(self.out - self.target, 2).sum(1).sum()
 
         self.loss_logging = (torch.cat((self.loss_logging, output), dim=0))
+        print("loss: {}".format(output))
         return output
 
     def backward(self):
@@ -31,7 +32,5 @@ class LossMSE(Loss):
         # dinput = torch.sum(dinput, dim=0).unsqueeze(0)
         if self.divide_by_n:
             dinput /= dinput.shape[0]
-
-        print("dinput.shape: ".format(dinput.shape))
 
         return dinput

@@ -5,7 +5,7 @@ import torch
 
 class Sequential(Module):
 
-    def __init__(self, modules=None):
+    def __init__(self, modules=None, loss_func=None):
         super(Sequential, self).__init__(trainable=False)
         self._modules = OrderedDict()
 
@@ -19,7 +19,7 @@ class Sequential(Module):
             else:
                 raise TypeError('Given parameter {} is not valid '.format(type(modules)))
 
-        self.output = None
+        self._loss = loss_func
 
     def add_module(self, module: Module, name):
 
@@ -30,49 +30,43 @@ class Sequential(Module):
 
         self._modules[name] = module
 
-    def forward(self, input: torch.FloatTensor):
+    def forward(self, input: torch.FloatTensor, target: torch.FloatTensor=False):
 
-        tmp_input = input
-        if tmp_input.dim() == 1:
-            tmp_input = tmp_input.unsqueeze(0)
+        out = input
 
         for module in self._modules.values():
-            tmp_input = module.forward(tmp_input)
+            out = module.forward(out)
 
-        self.output = tmp_input
-        # TODO: predict ?
-        _, self.prediction = self.output.max(1)
+        loss_val = None if target is None else self._loss.forward(out, target)
+        return out, loss_val
 
-        return self.output
+    def backward(self):
 
-    def backward(self, gradwrtoutputt):
-
+        gradwrtoutputt = self._loss.backward()
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
-        self.output = None
-        self.prediction = None
-
-        return gradwrtoutputt
-
     def predict(self, input):
+        output, _ = self.forward(input)
+        _, y_pred = output.max(1)
 
-        if self.prediction is None:
-            if self.output is None:
-                pass
-                # self.forward_without_loss(input)
-            else:
-                _, self.prediction = self.output.max(1)
-
-        return self.prediction
+        return y_pred
 
     def accuracy(self, input, target):
-        self.predict(input)
-        return (self.prediction == target).type(torch.FloatTensor).mean(), self.prediction
+        y_pred = self.predict(input)
+        return (y_pred == target).type(torch.FloatTensor).mean(), y_pred
 
     def print_model(self):
         for module in self._modules:
             print(module)
+
+    @property
+    def loss(self):
+        return self._loss
+
+    @loss.setter
+    def loss(self, loss_func):
+        self._loss = loss_func
 
     @property
     def trainable_modules(self):

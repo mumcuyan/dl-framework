@@ -83,19 +83,3 @@ class Linear(Module):
 
         self._params[name] = value
 
-
-"""
-        def param(self):
-        return [(self._params["weight"], self._grads["weight"]), (self._params["bias"], self._grads["bias"])]
-"""
-
-"""
-    def set_parameters(self, new_weight, new_bias=None):
-
-    if self.params["weight"].shape == new_weight.shape:
-        self.params["weight"] = new_weight
-        self.grads["weight"] = None
-    if new_bias is not None and self.params["weight"].shape[-1] == new_bias.shape[0]:
-        self.params["bias"] = new_bias
-        self.grads["bias"] = None
-"""

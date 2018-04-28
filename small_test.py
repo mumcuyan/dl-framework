@@ -21,9 +21,9 @@ def default_net_1(x_train, y_train, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, m
     )
 
     mse = LossMSE()
-
+    model.loss = mse
     # integrate loss function to optimizer like in Keras
-    sgd = SGD(mse, lr, momentum_coef)
+    sgd = SGD(lr, momentum_coef)
     print(type(input), " -- ", type(model))
 
     # TODO verbose
@@ -42,8 +42,9 @@ def default_net_2(x_train, y_train, num_of_neurons=(2, 25, 2), lr=0.1, momentum_
     model.add_module(lin1, name="Lin1")
     model.add_module(relu1, name="ReLU1")
     model.add_module(lin2, name="Lin2")
+    model.loss = mse
 
-    sgd = SGD(mse, lr, momentum_coef)
+    sgd = SGD(lr, momentum_coef)
     sgd.train(model, x_train, y_train, num_of_epochs)
 
     return model, mse.loss_logging
@@ -52,4 +53,5 @@ points, labels = generate_data(is_torch=True, num_of_points=1000)
 print(type(points), " -- ", type(labels))
 labels = transform_classification_labels(one_hot_label(labels))
 
-model, loss1 = default_net_2(points, labels)
+model, loss1 = default_net_2(points, labels, num_of_epochs=1000)
+print(loss1)

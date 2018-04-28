@@ -1,14 +1,13 @@
 import torch
 from .optimizer import Optimizer
 from modules.sequential import Sequential
-from losses import Loss
 from collections import OrderedDict
 
 
 class SGD(Optimizer):
 
-    def __init__(self, loss: Loss, lr=0.1, momentum_coef=0.0):
-        super(SGD, self).__init__(loss, lr, momentum_coef)
+    def __init__(self, lr=0.1, momentum_coef=0.0):
+        super(SGD, self).__init__(lr, momentum_coef)
 
     def train(self, model: Sequential, x_train, y_train, num_of_epochs, verbose=0):
         self.save_gradients(model, is_default=True)
@@ -16,9 +15,8 @@ class SGD(Optimizer):
             self.update_params(model, x_train, y_train)
 
     def update_params(self, model: Sequential, x_train: torch.FloatTensor, y_train: torch.FloatTensor):
-        y_out = model.forward(x_train)
-        self.loss.forward(y_out, y_train)
-        model.backward(self.loss.backward())
+        _, loss = model.forward(x_train, y_train)
+        model.backward()
 
         for i, module in enumerate(model.trainable_modules):  # go over fully connected layers
             for name, param in module.params:  # go over weight and bias (if not None)
