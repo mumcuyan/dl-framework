@@ -6,8 +6,8 @@ import torch
 class LossCrossEntropy(Loss):
 
     # not implemented
-    def __init__(self, target=None, divide_by_n=True, loss_per_row=False):
-        super(LossCrossEntropy, self).__init__(target, divide_by_n, loss_per_row)
+    def __init__(self, divide_by_n=True, loss_per_row=False):
+        super(LossCrossEntropy, self).__init__(divide_by_n, loss_per_row)
         self.input = None
 
     def forward(self, inputt, target):

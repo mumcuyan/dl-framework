@@ -1,3 +1,4 @@
+from losses import Loss
 from collections import OrderedDict
 from .module import Module
 import torch
@@ -23,6 +24,8 @@ class Sequential(Module):
 
     def add_module(self, module: Module, name):
 
+        if module is None or isinstance(module, Loss):
+            raise ValueError('Given object type is Loss is not valid !')
         if module is None or not isinstance(module, Module):
             raise ValueError('Given object type {} is not Module '.format(type(module)))
         if name is None or len(name) == 0:
