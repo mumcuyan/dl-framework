@@ -3,10 +3,10 @@ import torch
 
 class Loss:
 
-    def __init__(self, divide_by_n, loss_per_row):
+    def __init__(self, take_avg, loss_per_row):
         self.out, self.target = None, None
 
-        self.divide_by_n = divide_by_n
+        self.take_avg = take_avg
         self.loss_per_row = loss_per_row
         self.loss_logging = torch.FloatTensor()
 

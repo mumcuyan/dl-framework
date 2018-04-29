@@ -4,8 +4,8 @@ from . import Loss
 
 class LossMSE(Loss):
 
-    def __init__(self, divide_by_n=True, loss_per_row=False):
-        super(LossMSE, self).__init__(divide_by_n, loss_per_row)
+    def __init__(self, take_avg=True, loss_per_row=False):
+        super(LossMSE, self).__init__(take_avg, loss_per_row)
 
     def forward(self, y_out: torch.FloatTensor, y_targets: torch.FloatTensor):
         self.out, self.target = y_out, y_targets
@@ -13,13 +13,13 @@ class LossMSE(Loss):
         if self.loss_per_row:
             output = torch.pow(self.out - self.target, 2).sum(1)
         else:
-            if self.divide_by_n:
+            if self.take_avg:
                 output = torch.pow(self.out - self.target, 2).sum(1).mean(0)
             else:
                 output = torch.pow(self.out - self.target, 2).sum(1).sum()
 
         self.loss_logging = (torch.cat((self.loss_logging, output), dim=0))
-        print("loss: {}".format(output))
+
         return output
 
     def backward(self):
@@ -30,7 +30,7 @@ class LossMSE(Loss):
         dinput = 2 * (self.out - self.target) * gradwrtoutputt
         self.reset()
         # dinput = torch.sum(dinput, dim=0).unsqueeze(0)
-        if self.divide_by_n:
+        if self.take_avg:
             dinput /= dinput.shape[0]
 
         return dinput

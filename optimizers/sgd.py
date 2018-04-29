@@ -1,3 +1,4 @@
+from tqdm import trange
 import torch
 from .optimizer import Optimizer
 from modules.sequential import Sequential
@@ -11,7 +12,7 @@ class SGD(Optimizer):
 
     def train(self, model: Sequential, x_train, y_train, num_of_epochs, verbose=0):
         self.save_gradients(model, is_default=True)
-        for i in range(num_of_epochs):
+        for i in trange(num_of_epochs):
             self.update_params(model, x_train, y_train)
 
     def update_params(self, model: Sequential, x_train: torch.FloatTensor, y_train: torch.FloatTensor):

@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from exceptions import ShapeException
 from .module import Module
@@ -68,7 +69,6 @@ class Sigmoid(ActivationModule):
         return gradwrtoutput * dsigmoid
 
 
-# TODO: implement Softmax
 class Softmax(ActivationModule):
 
     def __init__(self):
@@ -77,8 +77,8 @@ class Softmax(ActivationModule):
 
     def forward(self, tensor_in: torch.FloatTensor):
         super().dim_check("forward input @ Softmax", tensor_in, 2)
-
         row_maxs, _ = tensor_in.max(1)
+
         x = torch.exp(tensor_in - row_maxs.repeat(tensor_in.shape[1], 1).transpose(0, 1))
         tensor_out = x / x.sum(1).repeat(tensor_in.shape[1], 1).transpose(0, 1)
 
@@ -86,11 +86,14 @@ class Softmax(ActivationModule):
 
         return tensor_out
 
+    # https://medium.com/@aerinykim/how-to-implement-the-softmax-derivative-independently-from-any-loss-function-ae6d44363a9d
+    # numpy conversion, might not work
     def backward(self, gradwrtoutput: torch.FloatTensor):
-        # not implemented
+
         super().dim_check("backward grad @ Softmax", gradwrtoutput, 2)
-        dsoftmax = self.output * (1 - self.output)
-        self.output = None  # reset output None
+        softmax_np = self.output.numpy()
+        softmax_np = softmax_np.reshape(-1, 1)
+        dsoftmax = torch.from_numpy(np.diagflat(softmax_np) - np.dot(softmax_np, softmax_np.T))
 
         return gradwrtoutput * dsoftmax
 

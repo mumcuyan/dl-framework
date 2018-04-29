@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 def generate_data(minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), center=np.array([0.5, 0.5]), num_of_points=1000,
