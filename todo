@@ -1,6 +1,1 @@
-*  add name as attribute in Linear module so that
-everybody can
-
-* add activation function to the Linear for easy model setup
-
 * output of layer -- input of next layer check in Sequential

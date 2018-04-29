@@ -10,12 +10,9 @@ from optimizers import SGD
 def default_net_1(x_train, y_train, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):
     model = Sequential(
         [
-            Linear(num_of_neurons[0], num_of_neurons[1]),
-            ReLU(),
-            Linear(num_of_neurons[1], num_of_neurons[2]),
-            ReLU(),
-            Linear(num_of_neurons[2], num_of_neurons[3]),
-            ReLU(),
+            Linear(num_of_neurons[0], num_of_neurons[1], activation=ReLU()),
+            Linear(num_of_neurons[1], num_of_neurons[2], activation=ReLU()),
+            Linear(num_of_neurons[2], num_of_neurons[3], activation=ReLU()),
             Linear(num_of_neurons[3], num_of_neurons[4])
         ]
     )
@@ -70,5 +67,16 @@ points, labels = generate_data(is_torch=True, num_of_points=1000)
 print(type(points), " -- ", type(labels))
 labels = one_hot_label(labels, val=0)  # convert labels to 1-hot encoding
 
-model, loss1 = default_net_3(points, labels, num_of_epochs=50000)
+model, loss1 = default_net_1(points, labels, num_of_epochs=50000)
 print(loss1)
+
+
+"""
+    Linear(num_of_neurons[0], num_of_neurons[1]),
+    ReLU(),
+    Linear(num_of_neurons[1], num_of_neurons[2]),
+    ReLU(),
+    Linear(num_of_neurons[2], num_of_neurons[3]),
+    ReLU(),
+    Linear(num_of_neurons[3], num_of_neurons[4])
+"""

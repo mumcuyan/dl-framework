@@ -7,7 +7,7 @@ from .module import Module
 
 class Linear(Module):
 
-    def __init__(self, in_num, out_num, is_bias=True, is_trainable=True):
+    def __init__(self, in_num, out_num, is_bias=True, is_trainable=True, activation: Module=None, name=None):
         super(Linear, self).__init__(trainable=is_trainable)
         self.in_num = in_num
         self.out_num = out_num
@@ -25,6 +25,8 @@ class Linear(Module):
             self._grads["bias"] = None
 
         self._initialize_parameters()
+        self._activation = activation
+        self._name = name
 
     def _initialize_parameters(self, is_xavier_initialization=True):
 
@@ -58,6 +60,14 @@ class Linear(Module):
 
         self._grads["weight"] = torch.mm(self.input.transpose(0, 1), gradwrtoutput)
         return torch.mm(gradwrtoutput, self._params["weight"].transpose(0, 1))
+
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def activation(self):
+        return self._activation
 
     @property
     def params(self):

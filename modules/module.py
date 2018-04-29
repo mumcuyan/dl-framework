@@ -4,8 +4,9 @@ from exceptions import ShapeException
 
 class Module(object):
 
-    def __init__(self, trainable):
-        self.trainable = trainable
+    def __init__(self, trainable, name=None):
+        self._trainable = trainable
+        self._name = name
 
     def forward(self, *input):
         raise NotImplementedError
@@ -18,6 +19,14 @@ class Module(object):
 
     def set_param(self, name, value):
         pass
+
+    @property
+    def trainable(self):
+        return self._trainable
+
+    @property
+    def name(self):
+        return self._name
 
     def dim_check(self, tensor_context: str, tensor_: torch.FloatTensor, dim: int):
         # assert tensor_.dim() == 2

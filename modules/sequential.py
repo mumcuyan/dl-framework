@@ -14,16 +14,19 @@ class Sequential(Module):
             if isinstance(modules, OrderedDict):
                 for name, module in modules.items():
                     self.add_module(module, name)
+
             elif isinstance(modules, list):
                 for idx, module in enumerate(modules):
-                    self.add_module(module, str(idx))
+                    name = getattr(module, 'name')
+                    mod_name = name if name is not None else str(idx)
+                    self.add_module(module, mod_name)
             else:
                 raise TypeError('Given parameter {} is not valid '.format(type(modules)))
 
         self._loss = loss_func
 
     def add_module(self, module: Module, name):
-
+        print("Name: {} ".format(name))
         if module is None or isinstance(module, Loss):
             raise ValueError('Given object type is Loss is not valid !')
         if module is None or not isinstance(module, Module):
@@ -32,6 +35,10 @@ class Sequential(Module):
             raise ValueError('Given name {} is not valid'.format(name))
 
         self._modules[name] = module
+        act_layer = getattr(module, 'activation', None)
+
+        if act_layer is not None:
+            self.add_module(act_layer, name + "_" + act_layer.__class__.__name__)
 
     def forward(self, input: torch.FloatTensor, target: torch.FloatTensor=False):
 
@@ -60,8 +67,8 @@ class Sequential(Module):
         return (y_pred == target).type(torch.FloatTensor).mean(), y_pred
 
     def print_model(self):
-        for module in self._modules:
-            print(module)
+        for name, module in self._modules.items():
+            print("Name: {}".format(name))
 
     @property
     def loss(self):
