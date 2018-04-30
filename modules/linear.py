@@ -1,14 +1,27 @@
+from .activations import *
 import torch
 from collections import OrderedDict
 from exceptions import ShapeException
+
 import numpy as np
 from .module import Module
+
+_nonlinear_funcs = {
+    'relu': ReLU,
+    'sigmoid': Sigmoid,
+    'softmax': Softmax,
+    'tanh': Tanh
+}
 
 
 class Linear(Module):
 
-    def __init__(self, in_num, out_num, is_bias=True, is_trainable=True, activation: Module=None, name=None):
-        super(Linear, self).__init__(trainable=is_trainable)
+    def __init__(self, in_num, out_num,
+                 is_bias=True,
+                 activation=None,
+                 name=None):
+
+        super(Linear, self).__init__(trainable=True)
         self.in_num = in_num
         self.out_num = out_num
 
@@ -19,14 +32,22 @@ class Linear(Module):
         self._grads["weight"] = None
         self._params["bias"], self._grads["bias"] = None, None
 
+        self._name = name
         self.is_bias = is_bias
         if is_bias:
             self._params["bias"] = torch.FloatTensor(out_num)
             self._grads["bias"] = None
 
+        # self.do_dropout = self.p_dropout > 0
         self._initialize_parameters()
-        self._activation = activation
-        self._name = name
+        if isinstance(activation, str):
+            try:
+                self._activation = _nonlinear_funcs[activation]()
+            except KeyError:
+                print("Given activation function {} is invalid".format(activation))
+                print('Available activation functions are following:\n'.format(str(_nonlinear_funcs.keys())))
+        elif isinstance(activation, Module):
+            self._activation = activation
 
     def _initialize_parameters(self, is_xavier_initialization=True):
 
@@ -37,7 +58,7 @@ class Linear(Module):
         if self.is_bias:
             self._params["bias"].uniform_(-std, std)
 
-    def forward(self, tensor_in: torch.FloatTensor):
+    def forward(self, tensor_in: torch.FloatTensor, do_dropout=True):
 
         self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
 
@@ -74,8 +95,9 @@ class Linear(Module):
             if self._params[key] is not None:
                 yield key, self._params[key]
 
-    def grads(self, key_name):
-        return self._grads[key_name]
+    @property
+    def grads(self):
+        return self._grads
 
     def set_param(self, name, value):
 
@@ -90,5 +112,3 @@ class Linear(Module):
                                  format(value.shape, self._params[name]))
 
         self._params[name] = value
-
-from torch.optim.sgd import SGD

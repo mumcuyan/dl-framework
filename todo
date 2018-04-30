@@ -1,1 +1,3 @@
 * output of layer -- input of next layer check in Sequential
+* verbose param in optimizer
+* compute accuracy

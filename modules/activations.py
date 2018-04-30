@@ -40,7 +40,7 @@ class ReLU(ActivationModule):
             raise ValueError('Input is not set, backward cannot be called !')
 
         gradwrtoutput[self.input <= 0] = 0
-
+        self.input = None
         return gradwrtoutput
 
 

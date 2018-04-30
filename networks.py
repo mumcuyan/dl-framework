@@ -1,7 +1,7 @@
 from modules.sequential import Sequential
 from modules.linear import Linear
 from modules.activations import ReLU, Sigmoid, Tanh
-from losses import LossMSE, LossSoftmaxCrossEntropy
+from modules.losses import LossMSE, LossSoftmaxCrossEntropy
 from optimizers.sgd import SGD
 
 
@@ -37,10 +37,10 @@ def default_net_2(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coe
     mse = LossMSE(target)
 
     seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(relu1, name="ReLU1")
-    seq.add_module(lin2, name="Lin2")
-    seq.add_module(mse, name="MSE")
+    seq.add(lin1, name="Lin1")
+    seq.add(relu1, name="ReLU1")
+    seq.add(lin2, name="Lin2")
+    seq.add(mse, name="MSE")
 
     sgd = SGD(lr, momentum_coef)
 
@@ -57,11 +57,11 @@ def default_net_3(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coe
     ce = LossSoftmaxCrossEntropy(target)
 
     seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(sig1, name="Sigmoid1")
-    seq.add_module(lin2, name="Lin2")
-    seq.add_module(sig2, name="Sigmoid2")
-    seq.add_module(ce, name="CE")
+    seq.add(lin1, name="Lin1")
+    seq.add(sig1, name="Sigmoid1")
+    seq.add(lin2, name="Lin2")
+    seq.add(sig2, name="Sigmoid2")
+    seq.add(ce, name="CE")
 
     sgd = SGD(lr, momentum_coef)
 
@@ -76,9 +76,9 @@ def default_net_4(input, target, num_of_neurons=(2, 2), lr=0.1, momentum_coef=0.
     ce = LossSoftmaxCrossEntropy(target)
 
     seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(sig1, name="Sigmoid1")
-    seq.add_module(ce, name="CE")
+    seq.add(lin1, name="Lin1")
+    seq.add(sig1, name="Sigmoid1")
+    seq.add(ce, name="CE")
 
     sgd = SGD(lr, momentum_coef)
 
@@ -92,8 +92,8 @@ def default_net_5(input, target, num_of_neurons=(2, 2), lr=0.1, momentum_coef=0.
     mse = LossMSE(target)
 
     seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(mse, name="MSE")
+    seq.add(lin1, name="Lin1")
+    seq.add(mse, name="MSE")
 
     sgd = SGD(lr, momentum_coef)
 
@@ -110,11 +110,11 @@ def default_net_6(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coe
     mse = LossMSE(target)
 
     seq = Sequential()
-    seq.add_module(lin1, name="Lin1")
-    seq.add_module(tan1, name="Tan1")
-    seq.add_module(lin2, name="Lin2")
-    seq.add_module(tan2, name="Tan2")
-    seq.add_module(mse, name="MSE")
+    seq.add(lin1, name="Lin1")
+    seq.add(tan1, name="Tan1")
+    seq.add(lin2, name="Lin2")
+    seq.add(tan2, name="Tan2")
+    seq.add(mse, name="MSE")
 
     sgd = SGD(lr, momentum_coef)
 

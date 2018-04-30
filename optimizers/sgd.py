@@ -21,14 +21,14 @@ class SGD(Optimizer):
 
         for i, module in enumerate(model.trainable_modules):  # go over fully connected layers
             for name, param in module.params:  # go over weight and bias (if not None)
-                update = module.grads(name)
+                update = module.grads[name]
 
                 if self.weight_decay > 0:
-                    update += self.weight_decay * module.grads(name)
+                    update += self.weight_decay * module.grads[name]
 
                 if self.momentum_coef > 0:
                     update += self.momentum_coef * self.log_grad[i][name]
-                    self.log_grad[i][name] = module.grads(name)
+                    self.log_grad[i][name] = module.grads[name]
 
                 new_param = param - self.lr * update
                 module.set_param(name, new_param)
