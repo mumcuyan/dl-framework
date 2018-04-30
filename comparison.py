@@ -1,4 +1,0 @@
-"""
-Compare our model with
-
-"""

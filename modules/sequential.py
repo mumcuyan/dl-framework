@@ -26,7 +26,7 @@ class Sequential(Module):
         self._loss = loss_func
 
     def add_module(self, module: Module, name):
-        print("Name: {} ".format(name))
+        print("Added Module Name: {} ".format(name))
         if module is None or isinstance(module, Loss):
             raise ValueError('Given object type is Loss is not valid !')
         if module is None or not isinstance(module, Module):

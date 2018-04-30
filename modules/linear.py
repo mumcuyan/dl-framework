@@ -30,10 +30,8 @@ class Linear(Module):
 
     def _initialize_parameters(self, is_xavier_initialization=True):
 
-        if is_xavier_initialization:
-            std = np.sqrt(2.0 / (self.in_num + self.out_num))
-        else:
-            std = np.sqrt(1.0 / (self.in_num))
+        denominator = (self.in_num + self.out_num) if is_xavier_initialization else self.in_num
+        std = np.sqrt(2.0 / denominator)
 
         self._params["weight"].uniform_(-std, std)
         if self.is_bias:
@@ -64,7 +62,7 @@ class Linear(Module):
     @property
     def name(self):
         return self._name
-    
+
     @property
     def activation(self):
         return self._activation
@@ -93,3 +91,4 @@ class Linear(Module):
 
         self._params[name] = value
 
+from torch.optim.sgd import SGD

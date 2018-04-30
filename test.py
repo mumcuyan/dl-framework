@@ -16,16 +16,15 @@ def default_net_1(x_train, y_train, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, m
             Linear(num_of_neurons[3], num_of_neurons[4])
         ]
     )
-
-    mse = LossMSE()
-    model.loss = mse
-    # integrate loss function to optimizer like in Keras
-    sgd = SGD(lr, momentum_coef)
+    # mse = LossMSE()
+    ce = LossSoftmaxCrossEntropy()
+    model.loss = ce
+    sgd = SGD(lr, momentum_coef, weight_decay=0.2)
 
     # TODO verbose
     sgd.train(model, x_train, y_train, num_of_epochs)
 
-    return model, mse.loss_logging
+    return model, ce.loss_logging
 
 
 def default_net_2(x_train, y_train, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):

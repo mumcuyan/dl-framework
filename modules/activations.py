@@ -4,7 +4,6 @@ from exceptions import ShapeException
 from .module import Module
 
 
-# TODO: tests
 class ActivationModule(Module):
 
     def __init__(self):
