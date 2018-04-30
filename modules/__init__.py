@@ -1,6 +1,5 @@
-from .linear import Linear
+from .layers import Linear, Dropout
 from .activations import ReLU, Sigmoid, Tanh
-from .dropout import Dropout
 from .losses import LossMSE, LossSoftmaxCrossEntropy
 from .sequential import Sequential
 

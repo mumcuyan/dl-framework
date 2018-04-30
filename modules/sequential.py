@@ -1,4 +1,4 @@
-from .dropout import Dropout
+from .layers import Dropout
 from .losses import Loss
 from collections import OrderedDict
 from .activations import *
