@@ -55,7 +55,6 @@ class Sigmoid(ActivationModule):
         super().dim_check("forward input @ Sigmoid", tensor_in, 2)
         tensor_out = torch.sigmoid(tensor_in)
         # tensor_out = 1/(1+torch.exp(-tensor_in))
-
         self.output = tensor_out
         return tensor_out
 

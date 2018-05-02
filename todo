@@ -1,3 +1,4 @@
-* output of layer -- input of next layer check in Sequential
+TODO:
+* pass validation set to optimizer.train
 * verbose param in optimizer
-* compute accuracy
+* mnist dataset comparison

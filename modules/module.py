@@ -2,6 +2,15 @@ import torch
 from exceptions import ShapeException
 
 
+def require_train(f):
+    def wrapper(self, *args):
+        if self.model is None:
+            raise Exception("Model is not trained")
+        return f(self, *args)
+
+    return wrapper
+
+
 class Module(object):
 
     def __init__(self, trainable, name=None):

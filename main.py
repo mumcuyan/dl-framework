@@ -1,38 +1,82 @@
-import numpy as np
-import torch
+from modules.layers import Linear
+
+def static_vars(**kwargs):
+    def real_decorator(func):
+        def decorate(*arg1):
+            print("inside decorator: {}".format(func))
+            for k in kwargs:
+                setattr(func, k, kwargs[k])
+            return func(*arg1)
+        return decorate
+    return real_decorator
 
 
-def forward(tensor_in: torch.FloatTensor, do_dropout=True):
+def static_vars_2(**kwargs):
+    def real_decorator(func):
+        for k in kwargs:
+            print(func, " -- ", k, " -- ", kwargs[k])
+            setattr(func, k, kwargs[k])
+        return func()
+    return real_decorator
 
-    # dropout will effect tensor_in
-    print("Shape: {}".format(tensor_in.shape))
-    vals = np.random.binomial(1, 0.2, size=tensor_in.shape[1])
-    print(vals.shape, " -- ", vals)
-    k = torch.mv(tensor_in, torch.from_numpy(vals).type(torch.FloatTensor))
-    print("Vals: {}".format(k))
 
-    return vals
+@static_vars_2(var=12)
+def basic_func():
+    print(basic_func)
+    # basic_func.var = 12
+    print("here: {}".format(basic_func))
+    print(basic_func.var)
+    #print("arg1: {} -- arg2: {}".format(arg1, arg2))
 
-#forward(torch.FloatTensor([[1, 2], [3, 4]]))
+k = basic_func()
+print("func_result: {}".format(k))
 
-p = 0.5  # probability of keeping a unit active. higher = less dropout
 
-def train_step(X, W):
-    """ X contains the data """
-    b1 = b2 = b3 = np.array([[0, 0]])
-    # forward pass for example 3-layer neural network
-    H1 = np.maximum(0, np.dot(W.T, X) + b1)
-    print("H1: ", H1)
-    U1 = (np.random.rand(*H1.shape) < p) / p # first dropout mask
-    print("U1: ", U1)
-    H1 *= U1  # drop!
-    print("H1: ", H1)
-    H2 = np.maximum(0, np.dot(W, H1) + b2)
-    U2 = np.random.rand(*H2.shape) < p  # second dropout mask
-    H2 *= U2  # drop!
-    out = np.dot(W, H2) + b3
+class MyClass:
 
-X = np.array([[1, 2], [2, 3]])
-W = np.array([[4], [5]])
+    def __init__(self):
+        self._aras = 22
 
-train_step(X, W)
+    @property
+    def aras(self):
+        return self._aras
+
+    @static_vars(var=12)
+    def basic_func(self, my_var):
+        if not hasattr(self.basic_func, 'var'):
+            print("no attribute !")
+            self.basic_func.var = 12
+        print("here: {}".format(self.basic_func))
+        print(self.basic_func.var)
+        #print("arg1: {} -- arg2: {}".format(arg1, arg2))
+
+"""
+obj = MyClass()
+obj.basic_func(22)
+res = hasattr(obj, 'aras')
+print("Res: {}".format(res))
+
+"""
+
+def static_vars(**kwargs):
+    def decorate(func):
+        for k in kwargs:
+            setattr(func, k, kwargs[k])
+        print(func)
+        return func
+    return decorate
+
+
+@static_vars(counter=0)
+def foo(arg):
+    print(foo, " -- ", arg)
+    foo.counter += 1
+    print("Counter is %d" % foo.counter)
+
+# foo(arg=2)
+# basic_func(1, 2)
+
+
+lin = Linear(out=12, input_size=6, activation='relu')
+if hasattr(lin, 'input_size'):
+    print("Hey there !!!! ")

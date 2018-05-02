@@ -24,7 +24,6 @@ def default_net_1(input, target, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, mome
     sgd = SGD(mse, lr, momentum_coef)
     print(type(input), " -- ", type(model))
 
-    # TODO verbose
     sgd.train(model, input, num_of_epochs, verbose=0)
 
     return model, mse.loss_logging

@@ -22,12 +22,15 @@ def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, is_torch=False)
     xx, yy = np.meshgrid(coor_x, coor_y)
     points = np.array([xx.flatten(), yy.flatten()]).T
 
+    center = np.array([minn + maxx/2, (minn + maxx)/2])
+    radius = 1
+    labels = (np.sum(np.square(center - points), axis=1) <= np.square(radius)).astype(np.float)
+
     if is_torch:
-        points = torch.from_numpy(points)
+        points, labels = torch.from_numpy(points), torch.from_numpy(labels)
+        return points.type(torch.FloatTensor), labels.type(torch.FloatTensor)
 
-        return points.type(torch.FloatTensor)
-
-    return points
+    return points, labels
 
 
 def plot_data(points, labels=0, minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), center=np.array([0.5, 0.5])):
@@ -41,3 +44,5 @@ def plot_data(points, labels=0, minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), c
 
 def main():
     generate_data(is_torch=True)
+
+

@@ -11,32 +11,31 @@ _nonlinear_funcs = {
 }
 
 
+def require_initialization(f):
+    def wrapper(self, *args):
+        if self._params['weight'] is None:
+            self.initialize()
+
+        return f(self, *args)
+    return wrapper
+
+
 class Linear(Module):
 
-    def __init__(self, in_num, out_num,
+    def __init__(self, out, input_size=None,
                  is_bias=True,
-                 activation=None,
-                 name=None):
+                 activation=None):
 
         super(Linear, self).__init__(trainable=True)
-        self.in_num = in_num
-        self.out_num = out_num
-
+        self.in_num = input_size
+        self.out_num = out
         self.input = None
-        self._params, self._grads = OrderedDict(), OrderedDict()
-
-        self._params["weight"] = torch.FloatTensor(in_num, out_num)
-        self._grads["weight"] = None
-        self._params["bias"], self._grads["bias"] = None, None
-
-        self._name = name
         self.is_bias = is_bias
-        if is_bias:
-            self._params["bias"] = torch.FloatTensor(out_num)
-            self._grads["bias"] = None
 
-        # self.do_dropout = self.p_dropout > 0
-        self._initialize_parameters()
+        self._params, self._grads = OrderedDict(), OrderedDict()
+        self._grads["bias"], self._grads['weight'] = None, None
+        self._params['bias'], self._params['weight'] = None, None
+
         if isinstance(activation, str):
             try:
                 self._activation = _nonlinear_funcs[activation]()
@@ -46,7 +45,13 @@ class Linear(Module):
         elif isinstance(activation, Module):
             self._activation = activation
 
-    def _initialize_parameters(self, is_xavier_initialization=True):
+    def initialize(self, is_xavier_initialization=True):
+        print("@initialize")
+        if self.in_num is None:
+            raise ValueError('Input layer size cannot be None !')
+
+        self._params["weight"] = torch.FloatTensor(self.in_num, self.out_num)
+        self._params["bias"] = torch.FloatTensor(self.out_num) if self.is_bias else None
 
         denominator = (self.in_num + self.out_num) if is_xavier_initialization else self.in_num
         std = np.sqrt(2.0 / denominator)
@@ -55,7 +60,8 @@ class Linear(Module):
         if self.is_bias:
             self._params["bias"].uniform_(-std, std)
 
-    def forward(self, tensor_in: torch.FloatTensor, do_dropout=True):
+    @require_initialization
+    def forward(self, tensor_in: torch.FloatTensor):
 
         self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
 
@@ -68,7 +74,6 @@ class Linear(Module):
         return tensor_out
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
-
         self.dim_check("gradwrtoutput backward@Linear", gradwrtoutput, dim=2)
 
         if self.is_bias:
@@ -76,25 +81,6 @@ class Linear(Module):
 
         self._grads["weight"] = torch.mm(self.input.transpose(0, 1), gradwrtoutput)
         return torch.mm(gradwrtoutput, self._params["weight"].transpose(0, 1))
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def activation(self):
-        return self._activation
-
-    @property
-    def params(self):
-        keys = ['weight', 'bias']
-        for key in keys:
-            if self._params[key] is not None:
-                yield key, self._params[key]
-
-    @property
-    def grads(self):
-        return self._grads
 
     def set_param(self, name, value):
 
@@ -109,6 +95,45 @@ class Linear(Module):
                                  format(value.shape, self._params[name]))
 
         self._params[name] = value
+
+    @property
+    def activation(self):
+        if self._activation is None:
+            raise AttributeError()
+        return self._activation
+
+    @property
+    def params(self):
+        keys = ['weight', 'bias']
+        for key in keys:
+            if self._params[key] is not None:
+                yield key, self._params[key]
+
+    @property
+    def grads(self):
+        return self._grads
+
+    def set_name(self, value):
+        self._name = value
+
+    def get_name(self):
+        return self._name
+
+    def set_input_size(self, value):
+        self.in_num = value
+
+    def get_input_size(self):
+        return self.in_num
+
+    def get_output_size(self):
+        return self.out_num
+
+    def set_output_size(self, value):
+        self.out_num = value
+
+    name = property(get_name, set_name)
+    input_size = property(fget=get_input_size, fset=set_input_size)
+    output_size = property(fget=get_output_size, fset=set_output_size)
 
 
 class Dropout(Module):

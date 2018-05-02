@@ -11,11 +11,11 @@ class SGD(Optimizer):
         super(SGD, self).__init__(lr, momentum_coef, weight_decay)
 
     def train(self, model: Sequential, x_train, y_train, num_of_epochs, verbose=0):
-        self.save_gradients(model, is_default=True)
+        self._save_gradients(model, is_default=True)
         for i in trange(num_of_epochs):
-            self.update_params(model, x_train, y_train)
+            self._update_params(model, x_train, y_train)
 
-    def update_params(self, model: Sequential, x_train: torch.FloatTensor, y_train: torch.FloatTensor):
+    def _update_params(self, model: Sequential, x_train: torch.FloatTensor, y_train: torch.FloatTensor):
         _, loss = model.forward(x_train, y_train)
         model.backward()
 
@@ -33,7 +33,7 @@ class SGD(Optimizer):
                 new_param = param - self.lr * update
                 module.set_param(name, new_param)
 
-    def save_gradients(self, model: Sequential, is_default=False):
+    def _save_gradients(self, model: Sequential, is_default=False):
         for i, module in enumerate(model.trainable_modules):
             self.log_grad[i] = OrderedDict()
 

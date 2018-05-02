@@ -17,3 +17,6 @@ class Optimizer:
         self.weight_decay = weight_decay
         self.momentum_coef = momentum_coef
         self.logger = logging.basicConfig(filename="sample.log", level=logging.INFO)
+
+    def train(self, model, x_train, y_train, num_of_epoch, verbose=0):
+        raise NotImplementedError
