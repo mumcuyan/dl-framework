@@ -1,4 +1,5 @@
 from .layers import Dropout
+from utils import one_hot2labels
 from .losses import Loss
 from collections import OrderedDict
 from .activations import *
@@ -50,16 +51,18 @@ class Sequential(Module):
         except AttributeError:
             pass
 
-    def forward(self, input: torch.FloatTensor, target: torch.FloatTensor=False, train=False):
+    def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=False):
 
-        out = input
-
+        train = y_input is not None
+        y_out = x_input
         for module in self._modules.values():
             if isinstance(module, Dropout) and not train:
                 continue
-            out = module.forward(out)
+            y_out = module.forward(y_out)
 
-        return out if target is None else (out, self._loss.forward(out, target, val))
+        if train:
+            self._loss.forward(y_out, y_input)
+        return y_out
 
     def backward(self):
         gradwrtoutputt = self._loss.backward()
@@ -67,25 +70,42 @@ class Sequential(Module):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
     def predict(self, x_test: torch.FloatTensor):
+        """
+        :param x_test:
+        :return: return N x 2 size tensor as a y_prediction
+        """
         if not torch.is_tensor(x_test):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
 
         y_pred = self.forward(x_test)
-        print(y_pred)
-        return y_pred.max(1)[1]
+        return y_pred
 
-    def evaluate(self, x_test: torch.FloatTensor, y_test: torch.FloatTensor):
+    def evaluate(self, x_test: torch.FloatTensor, y_test: torch.FloatTensor, return_pred=False):
         if not torch.is_tensor(y_test):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
-        if len(y_test.shape) != 1:
-            raise ShapeException('Given y_test with shape {} is not valid, required [nRows] '.format(y_test.shape))
 
         y_pred = self.predict(x_test)
+        loss_val = self._loss(y_pred, y_test)
 
-        return Sequential.accuracy(y_pred, y_test)
+        acc_val = self.accuracy(one_hot2labels(y_pred), one_hot2labels(y_test))
+
+        if not return_pred:
+            return acc_val, loss_val
+        else:
+            return acc_val, loss_val, y_pred.max(1)[1]
+
+    def test(self, x_test):
+        """
+        evaluate without providing y_test (which will not be our case)
+        TODO: implement for completeness
+        """
+        pass
 
     @staticmethod
     def accuracy(y_pred, y_test):
+        if not torch.is_tensor(y_test):
+            raise ValueError('Given x_test parameter must be torch.Tensor !')
+
         return (y_pred == y_test).type(torch.FloatTensor).mean()
 
     def print_model(self):

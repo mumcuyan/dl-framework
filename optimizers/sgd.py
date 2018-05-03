@@ -2,10 +2,9 @@ from tqdm import trange
 from .optimizer import Optimizer
 from modules.sequential import Sequential
 from collections import OrderedDict
-from utils import one_hot2labels, labels2one_hot
 import torch
 
-
+# TODO: built-in ?
 def size_splits(tensor, split_sizes, dim=0):
     """Splits the tensor according to chunks of split_sizes.
 
@@ -66,17 +65,16 @@ class SGD(Optimizer):
             results = self._update_params(model, x_train, y_train, x_val, y_val)
 
             if i % 100 == 0 and verbose == 1:
-                print('train_loss: {}, train_acc: {} ----- val_loss: {}, val_acc: {}'
-                      .format(results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
+                print('epoch: {} ---> train_loss: {:.4f}, train_acc: {} ----- val_loss: {:.4f}, val_acc: {}'
+                      .format(i, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
 
     def _update_params(self, model: Sequential, x_train, y_train, x_val, y_val) -> dict:
-        _, train_loss = model.forward(x_train, y_train)
-        train_acc = model.evaluate(x_train, one_hot2labels(y_train))
-
-        _, val_loss = model.forward(x_val, y_val, val=True)
-        val_acc = model.evaluate(x_val, one_hot2labels(y_val))
-
+        model.forward(x_train, y_train)
         model.backward()
+
+        train_acc, train_loss = model.evaluate(x_train, y_train)
+        val_acc, val_loss = model.evaluate(x_val, y_val)
+
         results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
         for i, module in enumerate(model.trainable_modules):  # go over fully connected layers

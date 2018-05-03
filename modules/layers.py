@@ -5,7 +5,7 @@ import torch
 
 _nonlinear_funcs = {
     'relu': ReLU,
-    'sigmoid': Sigmoid,
+    # 'sigmoid': Sigmoid,
     'softmax': Softmax,
     'tanh': Tanh
 }
@@ -77,11 +77,17 @@ class Linear(Module):
         if self.is_bias:
             tensor_out += self._params["bias"]
 
+        # if math.isnan(tensor_out.sum()):
+            # print(self._params['weight'])
+            # print(self._params['bias'])
+            # print("tensor_in: {}".format(tensor_in))
+            #print("tensor_out: {}".format(tensor_out))
+            # exit(1)
+
         return tensor_out
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
         """
-
         :param gradwrtoutput:
         :return:
         """

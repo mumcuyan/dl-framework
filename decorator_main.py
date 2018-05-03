@@ -48,7 +48,6 @@ class MyClass:
             self.basic_func.var = 12
         print("here: {}".format(self.basic_func))
         print(self.basic_func.var)
-        #print("arg1: {} -- arg2: {}".format(arg1, arg2))
 
 """
 obj = MyClass()
