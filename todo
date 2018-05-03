@@ -1,4 +1,2 @@
 TODO:
-* pass validation set to optimizer.train
-* verbose param in optimizer
 * mnist dataset comparison

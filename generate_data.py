@@ -34,7 +34,7 @@ def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1 / np.s
 
     val = (minn + maxx) / 2
     center = torch.FloatTensor([val, val])
-    print("ccenter: {}".format(center))
+
     return points, get_labels(points, center, radius)
 
 
@@ -45,6 +45,3 @@ def plot_data(points, labels=0, minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), c
     ax.scatter(points[:, 0], points[:, 1], c=labels)
     ax.set_xlim(minn, maxx)
     ax.set_ylim(minn, maxx)
-
-# generate_data()
-generate_grid_data()

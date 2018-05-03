@@ -46,7 +46,10 @@ class Linear(Module):
             self._activation = activation
 
     def initialize(self, is_xavier_initialization=True):
-        print("@initialize")
+        """
+        :param is_xavier_initialization:
+        :return:
+        """
         if self.in_num is None:
             raise ValueError('Input layer size cannot be None !')
 
@@ -62,7 +65,10 @@ class Linear(Module):
 
     @require_initialization
     def forward(self, tensor_in: torch.FloatTensor):
-
+        """
+        :param tensor_in:
+        :return:
+        """
         self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
 
         self.input = tensor_in
@@ -74,6 +80,11 @@ class Linear(Module):
         return tensor_out
 
     def backward(self, gradwrtoutput: torch.FloatTensor):
+        """
+
+        :param gradwrtoutput:
+        :return:
+        """
         self.dim_check("gradwrtoutput backward@Linear", gradwrtoutput, dim=2)
 
         if self.is_bias:
@@ -99,7 +110,7 @@ class Linear(Module):
     @property
     def activation(self):
         if self._activation is None:
-            raise AttributeError()
+            raise AttributeError()  # if activation is not set in initialization, never be set in the future
         return self._activation
 
     @property

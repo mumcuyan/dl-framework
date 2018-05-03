@@ -50,47 +50,38 @@ class Sequential(Module):
         except AttributeError:
             pass
 
-    def forward(self, input: torch.FloatTensor, target: torch.FloatTensor=False):
+    def forward(self, input: torch.FloatTensor, target: torch.FloatTensor=False, train=False):
 
-        is_test = target is None
         out = input
 
         for module in self._modules.values():
-            if is_test and isinstance(module, Dropout):
+            if isinstance(module, Dropout) and not train:
                 continue
             out = module.forward(out)
 
-        loss_val = None if target is None else self._loss.forward(out, target)
-        return out, loss_val
+        return out if target is None else (out, self._loss.forward(out, target, val))
 
     def backward(self):
-
         gradwrtoutputt = self._loss.backward()
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
-    """
-      def predict(self, input, is_force=True):
-    if is_force or self.prediction is None:
-      if is_force or self.output is None:
-        self.forward_without_loss(input)
-      else:
-        _, self.prediction = self.output.max(1)
-        
-    return self.prediction
-    """
     def predict(self, x_test: torch.FloatTensor):
         if not torch.is_tensor(x_test):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
 
-        y_pred, _ = self.forward(x_test)
+        y_pred = self.forward(x_test)
+        print(y_pred)
         return y_pred.max(1)[1]
 
     def evaluate(self, x_test: torch.FloatTensor, y_test: torch.FloatTensor):
         if not torch.is_tensor(y_test):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
+        if len(y_test.shape) != 1:
+            raise ShapeException('Given y_test with shape {} is not valid, required [nRows] '.format(y_test.shape))
 
         y_pred = self.predict(x_test)
+
         return Sequential.accuracy(y_pred, y_test)
 
     @staticmethod

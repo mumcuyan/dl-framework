@@ -5,11 +5,16 @@ import torch
 class Loss:
 
     def __init__(self, take_avg, loss_per_row):
+        """
+        :param take_avg:
+        :param loss_per_row:
+        """
         self.out, self.target = None, None
 
         self.take_avg = take_avg
         self.loss_per_row = loss_per_row
-        self.loss_logging = torch.FloatTensor()
+        # self.loss_logging = torch.FloatTensor()
+        self.loss_logging = []
 
     def reset(self):
         self.target = None
@@ -30,17 +35,15 @@ class LossMSE(Loss):
     def forward(self, y_out: torch.FloatTensor, y_targets: torch.FloatTensor):
         self.out, self.target = y_out, y_targets
 
-        if self.loss_per_row:
-            output = torch.pow(self.out - self.target, 2).sum(1)
-        else:
-            if self.take_avg:
-                output = torch.pow(self.out - self.target, 2).sum(1).mean(0)
-            else:
-                output = torch.pow(self.out - self.target, 2).sum(1).sum()
+        #if self.loss_per_row:
+        #     output = torch.pow(self.out - self.target, 2).sum(1)
+        # else:
 
-        self.loss_logging = (torch.cat((self.loss_logging, output), dim=0))
+        loss = torch.pow(self.out - self.target, 2).sum(1)
+        loss = loss.mean(0) if self.take_avg else loss.sum()
 
-        return output
+        self.loss_logging = (torch.cat((self.loss_logging, loss), dim=0))
+        return loss
 
     def backward(self):
         if self.out is None or self.target is None:
@@ -56,36 +59,40 @@ class LossMSE(Loss):
         return dinput
 
 
-class LossSoftmaxCrossEntropy(Loss):
+class LossCrossEntropy(Loss):
 
     def __init__(self, take_avg=True, loss_per_row=False):
-        super(LossSoftmaxCrossEntropy, self).__init__(take_avg, loss_per_row)
-        self.input = None
+        super(LossCrossEntropy, self).__init__(take_avg, loss_per_row)
 
-    def forward(self, y_linear: torch.FloatTensor, y_target: torch.FloatTensor):
-        self.target = y_target
-
-        # print(y_linear)
+    @staticmethod
+    def apply_softmax(y_linear: torch.FloatTensor):
         row_maxs, _ = y_linear.max(1)
         x = torch.exp(y_linear - row_maxs.repeat(y_linear.shape[1], 1).transpose(0, 1))
-        y_out = x / x.sum(1).repeat(y_linear.shape[1], 1).transpose(0, 1)
-        self.out = y_out
-        # print("TensorOut: {}".format(y_out))
+        return x / x.sum(1).repeat(y_linear.shape[1], 1).transpose(0, 1)
 
-        loss = - torch.log(y_out) * y_target  # N x 2 dim tensor
-        loss_out = loss.sum(1)  # loss per row  N x 1 dim tensor
+    def forward(self, y_linear: torch.FloatTensor, y_target: torch.FloatTensor, val):
+        print("@loss_forward: -> {}".format(y_linear.shape))
 
-        loss_out = loss_out.mean(0) if self.take_avg else loss_out.sum()
+        y_out = self.apply_softmax(y_linear) # y_out is softmax distribution of y_linear
+        if y_target is None:
+            return y_out
 
-        assert loss is not np.nan
-        self.loss_logging = (torch.cat((self.loss_logging, loss_out), dim=0))
+        eps = pow(np.e, -12)
+        loss = - torch.log(y_out + eps) * y_target  # N x 2 dim tensor
+        loss = loss.sum(1)  # loss per row  N x 1 dim tensor
 
-        return loss_out
+        loss = loss.mean(0) if self.take_avg else loss.sum()
+        if val is False:
+            self.out = y_out
+            self.target = y_target
+            self.loss_logging.append(loss)
+
+        # self.loss_logging = torch.cat((self.loss_logging, loss_out), dim=0)
+        return loss
 
     # derivation
     # http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/
     def backward(self):
-
         gradwrtoutputt = torch.FloatTensor([[1]])
         dinput = (self.out - self.target) * gradwrtoutputt
 

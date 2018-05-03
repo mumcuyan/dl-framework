@@ -1,7 +1,7 @@
 from modules.sequential import Sequential
 from modules.layers import Linear, Dropout
 from modules.activations import ReLU, Sigmoid, Tanh
-from modules.losses import LossMSE, LossSoftmaxCrossEntropy
+from modules.losses import LossMSE, LossCrossEntropy
 from optimizers.sgd import SGD
 
 
@@ -53,7 +53,7 @@ def default_net_3(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coe
     sig1 = Sigmoid()
     lin2 = Linear(num_of_neurons[1], num_of_neurons[2])
     sig2 = Sigmoid()
-    ce = LossSoftmaxCrossEntropy(target)
+    ce = LossCrossEntropy(target)
 
     seq = Sequential()
     seq.add(lin1, name="Lin1")
@@ -72,7 +72,7 @@ def default_net_3(input, target, num_of_neurons=(2, 25, 2), lr=0.1, momentum_coe
 def default_net_4(input, target, num_of_neurons=(2, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):
     lin1 = Linear(num_of_neurons[0], num_of_neurons[1])
     sig1 = Sigmoid()
-    ce = LossSoftmaxCrossEntropy(target)
+    ce = LossCrossEntropy(target)
 
     seq = Sequential()
     seq.add(lin1, name="Lin1")
