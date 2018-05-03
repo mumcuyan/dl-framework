@@ -32,7 +32,7 @@ class Sequential(Module):
             if module.input_size is None and len(self.layer_sizes) == 0:
                 raise ValueError('First module must specify input size in Linear layer !')
             if module.input_size is not None and \
-                    (len(self.layer_sizes) != 0 and module.input_size == self.layer_sizes[-1]):
+                    (len(self.layer_sizes) != 0 and module.input_size != self.layer_sizes[-1]):
                 raise ValueError('Given input size {} is not compatible with previous layer size: {}'
                                  .format(module.input_size,  self.layer_sizes[-1]))
 
@@ -41,6 +41,7 @@ class Sequential(Module):
 
             module.initialize()
             self.layer_sizes.append(getattr(module, 'output_size'))
+            print("prev: {}, current: {}".format(self.layer_sizes[-1], module.input_size))
 
         name = str(len(self._modules)) + "_" + module.__class__.__name__
         self._modules[name] = module
@@ -69,7 +70,7 @@ class Sequential(Module):
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
-    def predict(self, x_test: torch.FloatTensor):
+    def predict(self, x_test: torch.FloatTensor, convert_label=False):
         """
         :param x_test:
         :return: return N x 2 size tensor as a y_prediction
@@ -78,9 +79,19 @@ class Sequential(Module):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
 
         y_pred = self.forward(x_test)
-        return y_pred
+        return y_pred if not convert_label else y_pred.max(1)[1]
 
     def evaluate(self, x_test: torch.FloatTensor, y_test: torch.FloatTensor, return_pred=False):
+        """
+        To get accuracy, loss and prediction of x_test based on trained model
+        use this function.
+        If you do not have correct answers please refer to .predict function defined for this object.
+
+        :param x_test: [N x feature_dim] torch.FloatTensor
+        :param y_test: [N x class_num] torch.FloatTensor (one-hot encoded)
+        :param return_pred: flag var for returning labels for each test data point --> [N x 1] torch.FloatTensor
+        :return: accuracy of prediction and loss value, based on return_pred, predictions as labels
+        """
         if not torch.is_tensor(y_test):
             raise ValueError('Given x_test parameter must be torch.Tensor !')
 
@@ -94,13 +105,6 @@ class Sequential(Module):
         else:
             return acc_val, loss_val, y_pred.max(1)[1]
 
-    def test(self, x_test):
-        """
-        evaluate without providing y_test (which will not be our case)
-        TODO: implement for completeness
-        """
-        pass
-
     @staticmethod
     def accuracy(y_pred, y_test):
         if not torch.is_tensor(y_test):
@@ -111,6 +115,10 @@ class Sequential(Module):
     def print_model(self):
         for name, module in self._modules.items():
             print("Name: {}".format(name))
+
+    @property
+    def module_names(self):
+        return list(self._modules.keys())
 
     @property
     def loss(self):

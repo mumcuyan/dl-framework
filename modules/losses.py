@@ -5,16 +5,15 @@ import torch
 
 class Loss:
 
-    def __init__(self, take_avg, loss_per_row):
+    def __init__(self, take_avg: bool, loss_per_row: bool):
         """
-        :param take_avg:
+        :param take_avg: flag variable for whether taking avg of data-point each loss
         :param loss_per_row:
         """
         self.out, self.target = None, None
 
         self.take_avg = take_avg
         self.loss_per_row = loss_per_row
-        # self.loss_logging = torch.FloatTensor()
         self.loss_logging = []
 
     def reset(self):
@@ -38,7 +37,7 @@ class LossMSE(Loss):
 
     def __call__(self, y_out, y_target):
         """
-        :param y_out:
+        :param y_out: final
         :param y_target:
         :return:
         """
@@ -57,8 +56,7 @@ class LossMSE(Loss):
 
     def backward(self):
         """
-
-        :return:
+        :return: derivative of loss function wrt calculated out in forward
         """
         if self.out is None or self.target is None:
             raise ValueError('Cannot call backward before forward function.\ntarget or input is None')
@@ -114,7 +112,10 @@ class LossCrossEntropy(Loss):
     # http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/
     def backward(self):
         """
-
+        calculate derivative of CrossEntropyLoss wrt input of softmax layer
+        so there will be no backward implementation for softmax class
+        Please also note that this implementation assumes that softmax object
+        is used in final activation function in the network
         :return:
         """
         gradwrtoutputt = torch.FloatTensor([[1]])

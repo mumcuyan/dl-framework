@@ -18,5 +18,11 @@ class Optimizer:
         self.momentum_coef = momentum_coef
         self.logger = logging.basicConfig(filename="sample.log", level=logging.INFO)
 
+    @staticmethod
+    def report_results(results: dict, epoch_id: int, verbose):
+        if epoch_id % 100 == 0 and verbose == 1:
+            print('epoch: {} ---> train_loss: {:.4f}, train_acc: {} ----- val_loss: {:.4f}, val_acc: {}'
+                  .format(epoch_id, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
+
     def train(self, model, x_train, y_train, num_of_epoch, verbose=0):
         raise NotImplementedError

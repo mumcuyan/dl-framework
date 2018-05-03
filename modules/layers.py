@@ -1,11 +1,15 @@
-from .activations import *
 from collections import OrderedDict
-from exceptions import ShapeException
 import torch
+import numpy as np
+
+from .activations import ReLU, Softmax, Tanh
+from .module import Module
+from .module import require_dimension
+from exceptions import ShapeException
+
 
 _nonlinear_funcs = {
     'relu': ReLU,
-    # 'sigmoid': Sigmoid,
     'softmax': Softmax,
     'tanh': Tanh
 }
@@ -64,12 +68,12 @@ class Linear(Module):
             self._params["bias"].uniform_(-std, std)
 
     @require_initialization
+    @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
         """
         :param tensor_in:
         :return:
         """
-        self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
 
         self.input = tensor_in
         tensor_out = torch.mm(tensor_in, self._params["weight"])
@@ -77,22 +81,14 @@ class Linear(Module):
         if self.is_bias:
             tensor_out += self._params["bias"]
 
-        # if math.isnan(tensor_out.sum()):
-            # print(self._params['weight'])
-            # print(self._params['bias'])
-            # print("tensor_in: {}".format(tensor_in))
-            #print("tensor_out: {}".format(tensor_out))
-            # exit(1)
-
         return tensor_out
 
+    @require_dimension(dim=2)
     def backward(self, gradwrtoutput: torch.FloatTensor):
         """
         :param gradwrtoutput:
         :return:
         """
-        self.dim_check("gradwrtoutput backward@Linear", gradwrtoutput, dim=2)
-
         if self.is_bias:
             self._grads["bias"] = torch.mv(gradwrtoutput.transpose(0, 1), torch.ones(gradwrtoutput.shape[0]))
 
@@ -160,10 +156,9 @@ class Dropout(Module):
         self.mask = None
         super(Dropout, self).__init__(trainable=False, name=name)
 
+    @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
-        self.dim_check("input tensor forward@Linear", tensor_in, dim=2)
         tmp = np.random.binomial(1, self.prob, size=tensor_in.shape) / self.prob
-
         self.mask = torch.from_numpy(tmp).type(torch.FloatTensor)
 
         return tensor_in * self.mask

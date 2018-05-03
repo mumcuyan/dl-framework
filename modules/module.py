@@ -1,4 +1,3 @@
-import torch
 from exceptions import ShapeException
 
 
@@ -9,6 +8,28 @@ def require_train(f):
         return f(self, *args)
 
     return wrapper
+
+
+def require_dimension(dim):
+    def decorator(f):
+        def inner_func(self, tensor):
+            if tensor.dim() != dim:
+                raise ShapeException('func: dimension({}), required dimension is {}'
+                                     .format(f.__name__, tensor.dim(), dim))
+            return f(self, tensor)
+        return inner_func
+    return decorator
+
+
+def require_not_none(attr_name):
+    def decorator(f):
+        def inner_func(self, *args):
+            if getattr(self, attr_name, None) is None:
+                raise ValueError('Attribute called {} cannot be None, '
+                                 'forward function should be called before taking gradient !'.format(attr_name))
+            return f(self, *args)
+        return inner_func
+    return decorator
 
 
 class Module(object):
@@ -36,10 +57,3 @@ class Module(object):
     @property
     def name(self):
         return self._name
-
-    def dim_check(self, tensor_context: str, tensor_: torch.FloatTensor, dim: int):
-        # assert tensor_.dim() == 2
-
-        if tensor_.dim() != dim:
-            raise ShapeException('Given {} dimension({}), required dimension is {}'
-                                 .format(tensor_context, tensor_.dim(), dim))

@@ -4,6 +4,7 @@ from modules.sequential import Sequential
 from collections import OrderedDict
 import torch
 
+
 # TODO: built-in ?
 def size_splits(tensor, split_sizes, dim=0):
     """Splits the tensor according to chunks of split_sizes.
@@ -29,8 +30,8 @@ def size_splits(tensor, split_sizes, dim=0):
 def split_data(x_all, y_all, val_split):
     val_size = int(x_all.shape[0] * val_split)
     train_size = x_all.shape[0] - val_size
-    x_train, x_val = size_splits(x_all, [train_size, val_size])
-    y_train, y_val = size_splits(y_all, [train_size, val_size])
+    x_train, x_val = size_splits(x_all, [train_size, val_size], dim=0)
+    y_train, y_val = size_splits(y_all, [train_size, val_size], dim=0)
 
     return (x_train, y_train), (x_val, y_val)
 
@@ -63,10 +64,7 @@ class SGD(Optimizer):
         range_func = trange if verbose == 0 else range
         for i in range_func(num_of_epochs):
             results = self._update_params(model, x_train, y_train, x_val, y_val)
-
-            if i % 100 == 0 and verbose == 1:
-                print('epoch: {} ---> train_loss: {:.4f}, train_acc: {} ----- val_loss: {:.4f}, val_acc: {}'
-                      .format(i, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
+            self.report_results(results, i, verbose)
 
     def _update_params(self, model: Sequential, x_train, y_train, x_val, y_val) -> dict:
         model.forward(x_train, y_train)
