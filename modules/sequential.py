@@ -5,6 +5,8 @@ from collections import OrderedDict
 from .activations import *
 import torch
 
+from exceptions import InputSizeNotFoundError, NotCompatibleError
+
 
 class Sequential(Module):
 
@@ -30,10 +32,10 @@ class Sequential(Module):
 
         if hasattr(module, 'input_size'):
             if module.input_size is None and len(self.layer_sizes) == 0:
-                raise ValueError('First module must specify input size in Linear layer !')
+                raise InputSizeNotFoundError('First module must specify input size in Linear layer !')
             if module.input_size is not None and \
                     (len(self.layer_sizes) != 0 and module.input_size != self.layer_sizes[-1]):
-                raise ValueError('Given input size {} is not compatible with previous layer size: {}'
+                raise NotCompatibleError('Given input size {} is not compatible with previous layer size: {}'
                                  .format(module.input_size,  self.layer_sizes[-1]))
 
             if module.input_size is None:

@@ -1,2 +1,2 @@
 test:
-	nosetests --nocapture ./tests/simple_test.py
+	nosetests --nocapture ./tests/test_sequential.py
