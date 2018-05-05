@@ -14,8 +14,8 @@ def require_dimension(dim):
     def decorator(f):
         def inner_func(self, tensor):
             if tensor.dim() != dim:
-                raise ShapeException('func: dimension({}), required dimension is {}'
-                                     .format(f.__name__, tensor.dim(), dim))
+                raise ShapeException('func: dimension({}), required dimension is {}, given {}'
+                                     .format(f.__name__, tensor.dim(), dim, tensor.dim()))
             return f(self, tensor)
         return inner_func
     return decorator

@@ -20,6 +20,8 @@ class Optimizer:
 
     @staticmethod
     def report_results(results: dict, epoch_id: int, verbose):
+        # TODO: based on dict (keys, values) print
+
         if epoch_id % 100 == 0 and verbose == 1:
             print('epoch: {} ---> train_loss: {:.4f}, train_acc: {} ----- val_loss: {:.4f}, val_acc: {}'
                   .format(epoch_id, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))

@@ -43,7 +43,7 @@ class LossMSE(Loss):
         """
         loss_val = torch.pow(y_out - y_target, 2).sum(1)
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
-        return loss_val
+        return loss_val[0]  # TODO: handle
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
 

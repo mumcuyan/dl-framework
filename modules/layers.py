@@ -2,6 +2,7 @@ from collections import OrderedDict
 import torch
 import numpy as np
 
+from torch.distributions import __all__
 from .activations import ReLU, Softmax, Tanh
 from .module import Module
 from .module import require_dimension
@@ -158,8 +159,8 @@ class Dropout(Module):
 
     @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
-        tmp = np.random.binomial(1, self.prob, size=tensor_in.shape) / self.prob
-        self.mask = torch.from_numpy(tmp).type(torch.FloatTensor)
+        prob_tensor = torch.FloatTensor(tensor_in.shape).fill_(self.prob)
+        self.mask = torch.bernoulli(prob_tensor) / self.prob
 
         return tensor_in * self.mask
 

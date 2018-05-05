@@ -1,5 +1,5 @@
 from .layers import Dropout
-from utils import one_hot2labels
+from utils import one_hot2label
 from .losses import Loss
 from collections import OrderedDict
 from .activations import *
@@ -41,7 +41,6 @@ class Sequential(Module):
 
             module.initialize()
             self.layer_sizes.append(getattr(module, 'output_size'))
-            print("prev: {}, current: {}".format(self.layer_sizes[-1], module.input_size))
 
         name = str(len(self._modules)) + "_" + module.__class__.__name__
         self._modules[name] = module
@@ -55,15 +54,16 @@ class Sequential(Module):
     def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=False):
 
         train = y_input is not None
-        y_out = x_input
+        y_pred = x_input
         for module in self._modules.values():
             if isinstance(module, Dropout) and not train:
                 continue
-            y_out = module.forward(y_out)
+            y_pred = module.forward(y_pred)
 
         if train:
-            self._loss.forward(y_out, y_input)
-        return y_out
+            self._loss.forward(y_pred, y_input)
+
+        return y_pred
 
     def backward(self):
         gradwrtoutputt = self._loss.backward()
@@ -73,18 +73,18 @@ class Sequential(Module):
     def predict(self, x_test: torch.FloatTensor, convert_label=False):
         """
         :param x_test:
+        :param convert_label: boolean flag whether to convert prob dist to label
         :return: return N x 2 size tensor as a y_prediction
         """
         if not torch.is_tensor(x_test):
-            raise ValueError('Given x_test parameter must be torch.Tensor !')
+            raise TypeError('Given x_test parameter must be torch.Tensor !')
 
         y_pred = self.forward(x_test)
         return y_pred if not convert_label else y_pred.max(1)[1]
 
     def evaluate(self, x_test: torch.FloatTensor, y_test: torch.FloatTensor, return_pred=False):
         """
-        To get accuracy, loss and prediction of x_test based on trained model
-        use this function.
+        To get accuracy, loss and prediction of x_test based on trained model, use this function.
         If you do not have correct answers please refer to .predict function defined for this object.
 
         :param x_test: [N x feature_dim] torch.FloatTensor
@@ -93,12 +93,12 @@ class Sequential(Module):
         :return: accuracy of prediction and loss value, based on return_pred, predictions as labels
         """
         if not torch.is_tensor(y_test):
-            raise ValueError('Given x_test parameter must be torch.Tensor !')
+            raise TypeError('Given x_test parameter must be torch.Tensor !')
 
         y_pred = self.predict(x_test)
         loss_val = self._loss(y_pred, y_test)
 
-        acc_val = self.accuracy(one_hot2labels(y_pred), one_hot2labels(y_test))
+        acc_val = self.accuracy(one_hot2label(y_pred), one_hot2label(y_test))
 
         if not return_pred:
             return acc_val, loss_val
@@ -108,7 +108,7 @@ class Sequential(Module):
     @staticmethod
     def accuracy(y_pred, y_test):
         if not torch.is_tensor(y_test):
-            raise ValueError('Given x_test parameter must be torch.Tensor !')
+            raise TypeError('Given x_test parameter must be torch.Tensor !')
 
         return (y_pred == y_test).type(torch.FloatTensor).mean()
 

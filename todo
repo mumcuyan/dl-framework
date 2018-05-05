@@ -2,3 +2,4 @@ TODO:
 * mnist dataset comparison
 * try all of these with MSELoss
 * write some tests for activation && losses
+* use log instead of prints
