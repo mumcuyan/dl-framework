@@ -85,8 +85,15 @@ class LossCrossEntropy(Loss):
         :param y_target: tensor.FloatTensor with same shape y_out
         :return: value of defined loss function
         """
+        
+        """ another approach would be adding eps to each element of y_out to prevent NaNs at the output of torch.log()
         eps = pow(np.e, -12)
         loss_val = - torch.log(y_out + eps) * y_target  # N x 2 dim tensor
+        log_y_out = torch.log(y_out)
+        """
+        log_y_out = torch.log(y_out)
+        log_y_out[log_y_out != log_y_out] = 0
+        loss_val = - log_y_out * y_target  # N x 2 dim tensor
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
 
