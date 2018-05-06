@@ -64,7 +64,9 @@ class SGD(Optimizer):
         range_func = trange if verbose == 0 else range
         for i in range_func(num_of_epochs):
             results = self._update_params(model, x_train, y_train, x_val, y_val)
-            self.report_results(results, i, verbose)
+            self.save_results(results, i, verbose, verbose_freq=200)
+
+        return self.train_report
 
     def _update_params(self, model: Sequential, x_train, y_train, x_val, y_val) -> dict:
         model.forward(x_train, y_train)

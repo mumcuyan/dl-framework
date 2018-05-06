@@ -1,6 +1,6 @@
 from modules.sequential import Sequential
 from modules.layers import Linear, Dropout
-from modules.activations import ReLU, Sigmoid, Tanh
+from modules.activations import ReLU, Tanh
 from modules.losses import LossMSE, LossCrossEntropy
 from optimizers.sgd import SGD
 

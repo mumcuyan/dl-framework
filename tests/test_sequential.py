@@ -2,6 +2,7 @@ from unittest import TestCase
 from modules import Sequential, Linear
 from exceptions import *
 
+
 class BaseTest:
     pass
 

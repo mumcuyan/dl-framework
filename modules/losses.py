@@ -1,11 +1,13 @@
 import math
 import numpy as np
 import torch
+from .module import Module
 
 
 class Loss:
 
     def __init__(self, take_avg: bool, loss_per_row: bool):
+
         """
         :param take_avg: flag variable for whether taking avg of data-point each loss
         :param loss_per_row:
@@ -14,7 +16,6 @@ class Loss:
 
         self.take_avg = take_avg
         self.loss_per_row = loss_per_row
-        self.loss_logging = []
 
     def reset(self):
         self.target = None
@@ -50,7 +51,6 @@ class LossMSE(Loss):
         loss_val = self(y_out, y_target)
         self.out = y_out
         self.target = y_target
-        self.loss_logging.append(loss_val)
 
         return loss_val
 
@@ -85,8 +85,17 @@ class LossCrossEntropy(Loss):
         :param y_target: tensor.FloatTensor with same shape y_out
         :return: value of defined loss function
         """
+
+        """ another approach would be adding eps to each element of y_out to prevent NaNs at the output of torch.log()
         eps = pow(np.e, -12)
         loss_val = - torch.log(y_out + eps) * y_target  # N x 2 dim tensor
+        log_y_out = torch.log(y_out)
+        """
+
+        log_y_out = torch.log(y_out)
+        log_y_out[log_y_out != log_y_out] = 0
+        loss_val = - log_y_out * y_target  # N x 2 dim tensor
+
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
 
@@ -99,12 +108,14 @@ class LossCrossEntropy(Loss):
         :return:
         """
         # CHECK: given y_out must be a prob distribution e.g: softmax
-        assert math.isclose(y_out.sum(), y_out.shape[0], rel_tol=0.01)
+        # print(torch.ones(y_out.shape[0]))
+        # print(y_out.sum(1))
+
+        #  assert y_out.sum(1).equal(torch.ones(y_out.shape[0]))
 
         loss = self(y_out, y_target)
         self.out = y_out
         self.target = y_target
-        self.loss_logging.append(loss)
 
         return loss
 

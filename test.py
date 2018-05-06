@@ -19,9 +19,9 @@ def ce_net_1(x_all, y_all, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_c
     model.loss = ce
     sgd = SGD(lr, momentum_coef, weight_decay=0.2)
 
-    sgd.train(model, x_all, y_all, num_of_epochs, val_split=0.2)
+    res = sgd.train(model, x_all, y_all, num_of_epochs, val_split=0.2)
 
-    return model
+    return res, model
 
 
 def mse_net_1(x_all, y_all, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_coef=0.0, num_of_epochs=100):
@@ -29,7 +29,7 @@ def mse_net_1(x_all, y_all, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_
     mse = LossMSE()
     model = Sequential()
     model.add(Linear(out=num_of_neurons[1], input_size=num_of_neurons[0], activation='relu'))
-    model.add(Linear(out=num_of_neurons[2], activation='relu'))
+    model.add(Linear(out=num_of_neurons[2] + 2, activation='relu'))
     model.add(Linear(out=num_of_neurons[3], activation='relu'))
     model.add(Linear(out=num_of_neurons[4]))
     model.loss = mse
@@ -44,8 +44,10 @@ def cat_entropy():
     x_all, y_all = generate_data(num_of_points=500)
     y_all = label2one_hot(y_all, val=0)  # convert labels to 1-hot encoding
 
-    model = ce_net_1(x_all, y_all, num_of_epochs=2000)
+    train_report, model = ce_net_1(x_all, y_all, num_of_epochs=2000)
     # loss1 = model.loss.loss_logging
+    for key, val in train_report.items():
+        print("key: {} -- size: {}".format(key, len(val)))
 
     x_test, y_test = generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51)
 
@@ -65,5 +67,5 @@ def mse():
     print("results: {}".format(results))
 
 
-# cat_entropy()
-mse()
+cat_entropy()
+# mse()
