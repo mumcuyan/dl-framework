@@ -1,15 +1,16 @@
 import torch
 
-"""
-def transform_classification_labels(one_hot_labels: torch.LongTensor, val=-1):
-    transformed_labels = one_hot_labels.clone()
-    transformed_labels[one_hot_labels <= 0] = val
 
-    return transformed_labels
-"""
+def split_data(x_all, y_all, val_split):
+    val_size = int(x_all.shape[0] * val_split)
+    train_size = x_all.shape[0] - val_size
+    x_train, x_val = torch.split(x_all, [train_size, val_size], dim=0)
+    y_train, y_val = torch.split(y_all, [train_size, val_size], dim=0)
+
+    return (x_train, y_train), (x_val, y_val)
 
 
-def label2one_hot(labels, num_of_classes=None, val=-1):
+def label2one_hot(labels, num_of_classes=None, val=0):
 
     if num_of_classes is None:
         num_of_classes = int(labels.max()) + 1  # assuming class labels are 0, 1, 2, ... n-1

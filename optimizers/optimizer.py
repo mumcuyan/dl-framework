@@ -1,8 +1,10 @@
+from abc import abstractmethod
 from collections import OrderedDict
 import logging
 
 
 class Optimizer:
+
     def __init__(self, lr=0.1, momentum_coef=0, weight_decay=0.0):
 
         if weight_decay < 0:
@@ -25,6 +27,7 @@ class Optimizer:
 
         for key in self.train_report.keys():
             if key in results:
+                print("key: {} -- value: {}".format(key, results[key]))
                 self.train_report[key].append(results[key])
 
         if epoch_id % verbose_freq == 0 and verbose == 1:
@@ -32,9 +35,9 @@ class Optimizer:
 
     @staticmethod
     def report_results(results: dict, epoch_id):
-        # TODO: based on dict (keys, values) print
         print('epoch: {} ---> train_loss: {:.4f}, train_acc: {} ----- val_loss: {:.4f}, val_acc: {}'
                   .format(epoch_id, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
 
+    @abstractmethod
     def train(self, model, x_train, y_train, num_of_epoch, verbose=0):
-        raise NotImplementedError
+        pass

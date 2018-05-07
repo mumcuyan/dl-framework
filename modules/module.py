@@ -1,15 +1,6 @@
 from exceptions import ShapeException
 
 
-def require_train(f):
-    def wrapper(self, *args):
-        if self.model is None:
-            raise Exception("Model is not trained")
-        return f(self, *args)
-
-    return wrapper
-
-
 def require_dimension(dim):
     def decorator(f):
         def inner_func(self, tensor):

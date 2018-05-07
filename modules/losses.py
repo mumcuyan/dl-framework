@@ -1,21 +1,18 @@
-import math
 import numpy as np
 import torch
-from .module import Module
+from .module import  Module
 
 
-class Loss:
+class Loss(Module):
 
-    def __init__(self, take_avg: bool, loss_per_row: bool):
-
+    def __init__(self, take_avg: bool):
+        super(Loss, self).__init__(trainable=False)
         """
         :param take_avg: flag variable for whether taking avg of data-point each loss
         :param loss_per_row:
         """
         self.out, self.target = None, None
-
-        self.take_avg = take_avg
-        self.loss_per_row = loss_per_row
+        self.take_avg = take_avg  # or sum over all elements
 
     def reset(self):
         self.target = None
@@ -33,8 +30,8 @@ class Loss:
 
 class LossMSE(Loss):
 
-    def __init__(self, take_avg=True, loss_per_row=False):
-        super(LossMSE, self).__init__(take_avg, loss_per_row)
+    def __init__(self, take_avg=True):
+        super(LossMSE, self).__init__(take_avg)
 
     def __call__(self, y_out, y_target):
         """
@@ -44,15 +41,14 @@ class LossMSE(Loss):
         """
         loss_val = torch.pow(y_out - y_target, 2).sum(1)
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
-        return loss_val[0]  # TODO: handle
+
+        return loss_val.item()
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
-
-        loss_val = self(y_out, y_target)
         self.out = y_out
         self.target = y_target
 
-        return loss_val
+        return self(y_out, y_target)
 
     def backward(self):
         """
@@ -64,19 +60,16 @@ class LossMSE(Loss):
         gradwrtoutputt = torch.FloatTensor([[1]])
         dinput = 2 * (self.out - self.target) * gradwrtoutputt
         self.reset()
-        # dinput = torch.sum(dinput, dim=0).unsqueeze(0)
-        if self.take_avg:
-            dinput /= dinput.shape[0]
 
-        return dinput
+        return dinput/dinput.shape[0] if self.take_avg else dinput
 
 
 class LossCrossEntropy(Loss):
 
-    def __init__(self, take_avg=True, loss_per_row=False):
-        super(LossCrossEntropy, self).__init__(take_avg, loss_per_row)
+    def __init__(self, take_avg=True):
+        super(LossCrossEntropy, self).__init__(take_avg)
 
-    def __call__(self, y_out, y_target):
+    def __call__(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
         """
         use this function,
             if the only concern is to calculate loss
@@ -86,20 +79,13 @@ class LossCrossEntropy(Loss):
         :return: value of defined loss function
         """
 
-        """ another approach would be adding eps to each element of y_out to prevent NaNs at the output of torch.log()
-        eps = pow(np.e, -12)
-        loss_val = - torch.log(y_out + eps) * y_target  # N x 2 dim tensor
-        log_y_out = torch.log(y_out)
-        """
-
         log_y_out = torch.log(y_out)
         log_y_out[log_y_out != log_y_out] = 0
         loss_val = - log_y_out * y_target  # N x 2 dim tensor
 
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
-
-        return loss_val[0]  # TODO: handle this accordingly with take_avg false
+        return loss_val.item()
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
         """
@@ -108,16 +94,13 @@ class LossCrossEntropy(Loss):
         :return:
         """
         # CHECK: given y_out must be a prob distribution e.g: softmax
-        # print(torch.ones(y_out.shape[0]))
-        # print(y_out.sum(1))
+        row_sum = np.ceil(y_out.sum(1).numpy()).astype(int)
+        ones = np.ones_like(row_sum, dtype=int)
+        assert np.array_equal(row_sum, ones)
 
-        #  assert y_out.sum(1).equal(torch.ones(y_out.shape[0]))
-
-        loss = self(y_out, y_target)
         self.out = y_out
-        self.target = y_target
-
-        return loss
+        self.target = y_target  # save given parameter for backward function
+        return self(y_out, y_target)
 
     # derivation
     # http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/

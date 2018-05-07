@@ -2,38 +2,7 @@ from tqdm import trange
 from .optimizer import Optimizer
 from modules.sequential import Sequential
 from collections import OrderedDict
-import torch
-
-
-# TODO: built-in ?
-def size_splits(tensor, split_sizes, dim=0):
-    """Splits the tensor according to chunks of split_sizes.
-
-    Arguments:
-        tensor (Tensor): tensor to split.
-        split_sizes (list(int)): sizes of chunks
-        dim (int): dimension along which to split the tensor.
-    """
-    if dim < 0:
-        dim += tensor.dim()
-
-    dim_size = tensor.size(dim)
-    if dim_size != torch.sum(torch.Tensor(split_sizes)):
-        raise KeyError("Sum of split sizes exceeds tensor dim")
-
-    splits = torch.cumsum(torch.Tensor([0] + split_sizes), dim=0)[:-1]
-
-    return tuple(tensor.narrow(int(dim), int(start), int(length))
-                 for start, length in zip(splits, split_sizes))
-
-
-def split_data(x_all, y_all, val_split):
-    val_size = int(x_all.shape[0] * val_split)
-    train_size = x_all.shape[0] - val_size
-    x_train, x_val = size_splits(x_all, [train_size, val_size], dim=0)
-    y_train, y_val = size_splits(y_all, [train_size, val_size], dim=0)
-
-    return (x_train, y_train), (x_val, y_val)
+from utils import split_data
 
 
 class SGD(Optimizer):
@@ -58,7 +27,14 @@ class SGD(Optimizer):
             raise ValueError('validation_split ratio must be between 0 and 1 (exclusive), given {}'
                              .format(val_split))
 
+        # perm_ = torch.randperm(x_all.shape[0])
+        # x_all = x_all[perm_]
+        # y_all = y_all[perm_]
+
         (x_train, y_train), (x_val, y_val) = split_data(x_all, y_all, val_split=val_split)
+        print("x_train.shape: {} -- y_train.shape: {}".format(x_train.shape, y_train.shape))
+        print("x_val.shape: {} -- y_val.shape: {}".format(x_val.shape, y_val.shape))
+
         self._save_gradients(model, is_default=True)
 
         range_func = trange if verbose == 0 else range
@@ -71,11 +47,6 @@ class SGD(Optimizer):
     def _update_params(self, model: Sequential, x_train, y_train, x_val, y_val) -> dict:
         model.forward(x_train, y_train)
         model.backward()
-
-        train_acc, train_loss = model.evaluate(x_train, y_train)
-        val_acc, val_loss = model.evaluate(x_val, y_val)
-
-        results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
         for i, module in enumerate(model.trainable_modules):  # go over fully connected layers
             for name, param in module.params:  # go over weight and bias (if not None)
@@ -90,6 +61,11 @@ class SGD(Optimizer):
 
                 new_param = param - self.lr * update
                 module.set_param(name, new_param)
+
+        train_acc, train_loss = model.evaluate(x_train, y_train)
+        val_acc, val_loss = model.evaluate(x_val, y_val)
+
+        results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
         return results
 

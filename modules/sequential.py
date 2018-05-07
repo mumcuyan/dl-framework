@@ -4,6 +4,7 @@ from .losses import Loss
 from collections import OrderedDict
 from .activations import *
 import torch
+import collections
 
 from exceptions import InputSizeNotFoundError, NotCompatibleError
 
@@ -15,7 +16,7 @@ class Sequential(Module):
         self._modules = OrderedDict()
         self.layer_sizes = []
         if modules is not None:
-            if isinstance(modules, list):
+            if isinstance(modules, collections.Sequence):
                 for idx, module in enumerate(modules):
                     self.add(module)
             else:

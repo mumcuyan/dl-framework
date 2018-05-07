@@ -1,4 +1,3 @@
 TODO:
-* mnist dataset comparison
-* write some tests for activation && losses
-* use log instead of prints
+* validation vs train acc_lost ?
+* make travis work as well as gemfile ?

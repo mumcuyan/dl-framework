@@ -29,7 +29,7 @@ def mse_net_1(x_all, y_all, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_
     mse = LossMSE()
     model = Sequential()
     model.add(Linear(out=num_of_neurons[1], input_size=num_of_neurons[0], activation='relu'))
-    model.add(Linear(out=num_of_neurons[2] + 2, activation='relu'))
+    model.add(Linear(out=num_of_neurons[2], activation='relu'))
     model.add(Linear(out=num_of_neurons[3], activation='relu'))
     model.add(Linear(out=num_of_neurons[4]))
     model.loss = mse
@@ -44,7 +44,7 @@ def cat_entropy():
     x_all, y_all = generate_data(num_of_points=500)
     y_all = label2one_hot(y_all, val=0)  # convert labels to 1-hot encoding
 
-    train_report, model = ce_net_1(x_all, y_all, num_of_epochs=2000)
+    train_report, model = ce_net_1(x_all, y_all, num_of_epochs=2)
     # loss1 = model.loss.loss_logging
     for key, val in train_report.items():
         print("key: {} -- size: {}".format(key, len(val)))
