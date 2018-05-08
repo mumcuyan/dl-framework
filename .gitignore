@@ -200,5 +200,7 @@ venv.bak/
 
 .idea/*
 
+data/*
+
 # End of https://www.gitignore.io/api/macos,python,pycharm,jupyternotebook
 sample.log
