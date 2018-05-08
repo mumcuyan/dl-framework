@@ -79,8 +79,10 @@ class LossCrossEntropy(Loss):
         :return: value of defined loss function
         """
 
+        eps = 1e-6
+        y_out.clamp_(min=eps) # set each element to at least eps for numerical stability in log
         log_y_out = torch.log(y_out)
-        log_y_out[log_y_out != log_y_out] = 0
+        log_y_out[log_y_out != log_y_out] = 0 # set NaNs to 0
         print(y_out.shape, " -- ", y_target.shape)
         loss_val = - log_y_out * y_target  # N x 2 dim tensor
 
