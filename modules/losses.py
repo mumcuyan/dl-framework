@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from .module import  Module
+from .module import Module
 
 
 class Loss(Module):
@@ -81,6 +81,7 @@ class LossCrossEntropy(Loss):
 
         log_y_out = torch.log(y_out)
         log_y_out[log_y_out != log_y_out] = 0
+        print(y_out.shape, " -- ", y_target.shape)
         loss_val = - log_y_out * y_target  # N x 2 dim tensor
 
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
@@ -94,8 +95,9 @@ class LossCrossEntropy(Loss):
         :return:
         """
         # CHECK: given y_out must be a prob distribution e.g: softmax
-        row_sum = np.ceil(y_out.sum(1).numpy()).astype(int)
+        row_sum = np.around(y_out.sum(1).numpy()).astype(int)
         ones = np.ones_like(row_sum, dtype=int)
+        print("row_sum: {} -- row_sum_sum: {}".format(row_sum.shape, np.sum(row_sum)))
         assert np.array_equal(row_sum, ones)
 
         self.out = y_out

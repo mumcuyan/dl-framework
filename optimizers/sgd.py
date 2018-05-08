@@ -1,3 +1,4 @@
+import torch
 from tqdm import trange
 from .optimizer import Optimizer
 from modules.sequential import Sequential
@@ -10,7 +11,7 @@ class SGD(Optimizer):
     def __init__(self, lr=0.1, momentum_coef=0.0, weight_decay=0.0):
         super(SGD, self).__init__(lr, momentum_coef, weight_decay)
 
-    def train(self, model: Sequential, x_all, y_all, num_of_epochs, val_split: float=0, verbose=1):
+    def train(self, model: Sequential, x_all, y_all, num_of_epochs, val_split: float=0, verbose=1) -> dict:
         """
         :param model: supposed to be a Sequential obj
         :param x_all: torch.FloatTensor
@@ -27,9 +28,9 @@ class SGD(Optimizer):
             raise ValueError('validation_split ratio must be between 0 and 1 (exclusive), given {}'
                              .format(val_split))
 
-        # perm_ = torch.randperm(x_all.shape[0])
-        # x_all = x_all[perm_]
-        # y_all = y_all[perm_]
+        perm_ = torch.randperm(x_all.shape[0])
+        x_all = x_all[perm_]
+        y_all = y_all[perm_]
 
         (x_train, y_train), (x_val, y_val) = split_data(x_all, y_all, val_split=val_split)
         print("x_train.shape: {} -- y_train.shape: {}".format(x_train.shape, y_train.shape))
@@ -65,9 +66,7 @@ class SGD(Optimizer):
         train_acc, train_loss = model.evaluate(x_train, y_train)
         val_acc, val_loss = model.evaluate(x_val, y_val)
 
-        results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
-
-        return results
+        return {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
     def _save_gradients(self, model: Sequential, is_default=False):
         for i, module in enumerate(model.trainable_modules):

@@ -54,7 +54,7 @@ class Sequential(Module):
         except AttributeError:
             pass
 
-    def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=False):
+    def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=None):
 
         train = y_input is not None
         y_pred = x_input
