@@ -15,7 +15,7 @@ class ActivationModule(Module):
     def backward(self, *gradwrtoutput):
         raise NotImplementedError
 
-
+        
 class ReLU(ActivationModule):
 
     def __init__(self):
