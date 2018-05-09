@@ -1,13 +1,13 @@
-from .layers import Dropout
+from .layers import Linear, Dropout
 from utils import one_hot2label
-from .losses import Loss
+from .losses import Loss, LossMSE, LossCrossEntropy
 from collections import OrderedDict
 from .activations import *
 import torch
 import collections
-
 from exceptions import InputSizeNotFoundError, NotCompatibleError
-
+import json
+import numpy as np
 
 class Sequential(Module):
 
@@ -108,6 +108,59 @@ class Sequential(Module):
         else:
             return acc_val, loss_val, y_pred.max(1)[1]
 
+    def save_to_disk(self, filename, is_save_to_disk=True):
+        dump = OrderedDict()
+        all_params = OrderedDict()
+        for name_module, module in self._modules.items():
+            param_dict = OrderedDict()
+            for name_param, param in module.params:  # go over weight and bias (if not None)
+                param_dict[name_param] = param.data.numpy().tolist()
+            if "Dropout" in name_module:
+                param_dict["p_dropout"] = 1 - module.prob
+            all_params[name_module] = param_dict
+        
+        dump["loss"] = 'MSE' if isinstance(self.loss, LossMSE) else 'CE'
+        dump["modules"] = all_params
+        
+        if is_save_to_disk:
+            with open(filename, 'w') as f:
+                json.dump(dump, f)      
+        else:
+            return all_params
+        
+    def load_from_disk(self, filename):
+        
+        with open(filename) as f:
+            dump = json.load(f)
+        
+        loss = dump["loss"]
+        all_params = dump["modules"]
+        
+        for name_module, module_params in all_params.items():
+            char_index = name_module.find('_')
+            module_type = name_module[char_index+1:]
+            
+            if module_type == "Linear":
+                casted_param = torch.from_numpy(np.array(module_params['weight'])).type(torch.FloatTensor)
+                module = Linear(out=casted_param.shape[1], input_size=casted_param.shape[0])
+            if module_type == "Dropout":
+                module = Dropout(prob=module_params["p_dropout"])
+            if module_type == "ReLU":
+                module = ReLU()
+            if module_type == "Tanh":
+                module = Tanh()
+            if module_type == "Softmax":
+                module = Softmax()
+             
+            self.add(module)
+            
+            if module_type == "Linear":
+                for name_param, param in module_params.items():  # go over weight and bias (if not None)
+                    casted_param = torch.from_numpy(np.array(param)).type(torch.FloatTensor)
+                    self._modules[name_module].set_param(name_param, casted_param)       
+        
+        self.loss = LossMSE() if loss == 'MSE' else LossCrossEntropy()
+        
     @staticmethod
     def accuracy(y_pred, y_test):
         if not torch.is_tensor(y_test):

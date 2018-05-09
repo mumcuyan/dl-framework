@@ -35,12 +35,16 @@ class Module(object):
     def backward(self, *gradwrtoutput):
         raise NotImplementedError
 
+    @property
     def params(self):
-        return []
+        keys = []
+        for key in keys:
+            if self._params[key] is not None:
+                yield key, self._params[key]
 
     def set_param(self, name, value):
         pass
-
+    
     @property
     def trainable(self):
         return self._trainable

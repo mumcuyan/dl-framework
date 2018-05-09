@@ -67,7 +67,7 @@ class Linear(Module):
         self._params["weight"].uniform_(-std, std)
         if self.is_bias:
             self._params["bias"].uniform_(-std, std)
-
+        
     @require_initialization
     @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
@@ -104,12 +104,12 @@ class Linear(Module):
         if not isinstance(value, torch.FloatTensor):
             raise TypeError('Required type is torch.FloatTensor, given {}'.format(type(value)))
 
-        if value.shape != self._params[name].shape:
+        if self._params[name] is not None and value.shape != self._params[name].shape:
             raise ShapeException('Given shape ({}) does not match with required ({})'.
                                  format(value.shape, self._params[name]))
-
+        
         self._params[name] = value
-
+        
     @property
     def activation(self):
         if self._activation is None:
