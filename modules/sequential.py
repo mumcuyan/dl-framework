@@ -108,7 +108,7 @@ class Sequential(Module):
         else:
             return acc_val, loss_val, y_pred.max(1)[1]
 
-    def print_to_disk(self, filename, is_save_to_disk=True):
+    def save_to_disk(self, filename, is_save_to_disk=True):
         dump = OrderedDict()
         all_params = OrderedDict()
         for name_module, module in self._modules.items():
@@ -143,7 +143,6 @@ class Sequential(Module):
             if module_type == "Linear":
                 casted_param = torch.from_numpy(np.array(module_params['weight'])).type(torch.FloatTensor)
                 module = Linear(out=casted_param.shape[1], input_size=casted_param.shape[0])
-                module.initialize()
             if module_type == "Dropout":
                 module = Dropout(prob=module_params["p_dropout"])
             if module_type == "ReLU":
