@@ -17,6 +17,9 @@ def ce_net_1(x_all, y_all, num_of_neurons=(2, 25, 25, 25, 2), lr=0.1, momentum_c
     model.add(Linear(out=num_of_neurons[4], activation='softmax'))
 
     model.loss = ce
+
+    print(model)
+
     sgd = SGD(lr, momentum_coef, weight_decay=0.2)
 
     res = sgd.train(model, x_all, y_all, num_of_epochs, val_split=0.2)

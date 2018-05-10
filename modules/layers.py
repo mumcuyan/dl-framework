@@ -29,9 +29,9 @@ class Linear(Module):
 
     def __init__(self, out, input_size=None,
                  is_bias=True,
-                 activation=None):
+                 activation=None, name=None):
 
-        super(Linear, self).__init__(trainable=True)
+        super(Linear, self).__init__(trainable=True, name=name)
         self.in_num = input_size
         self.out_num = out
         self.input = None
@@ -109,7 +109,14 @@ class Linear(Module):
                                  format(value.shape, self._params[name]))
         
         self._params[name] = value
-        
+
+    def __str__(self):
+        """
+        :return: for model summary
+        """
+        return self.name + "\t\t (" + str(self.in_num) + ")" + "\t\t\t (" + str(self.out_num) + ")"
+
+
     @property
     def activation(self):
         if self._activation is None:
@@ -168,3 +175,6 @@ class Dropout(Module):
         grad = gradwrtoutput * self.mask
         self.mask = None
         return grad
+
+    def __str__(self):
+        return self.name + " (p: " + str(self.prob) + ")"

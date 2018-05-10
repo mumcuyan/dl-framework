@@ -35,6 +35,9 @@ class Module(object):
     def backward(self, *gradwrtoutput):
         raise NotImplementedError
 
+    def __str__(self):
+        raise NotImplementedError
+
     @property
     def params(self):
         keys = []
@@ -52,3 +55,7 @@ class Module(object):
     @property
     def name(self):
         return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value

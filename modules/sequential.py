@@ -1,17 +1,21 @@
-from .layers import Linear, Dropout
-from utils import one_hot2label
 from .losses import Loss, LossMSE, LossCrossEntropy
-from collections import OrderedDict
 from .activations import *
-import torch
-import collections
+from .layers import Linear, Dropout
+
 from exceptions import InputSizeNotFoundError, NotCompatibleError
+from utils import one_hot2label
+from collections import OrderedDict
+
+import collections
 import json
 import numpy as np
+import torch
+
 
 class Sequential(Module):
 
     def __init__(self, modules=None, loss_func=None):
+
         super(Sequential, self).__init__(trainable=False)
         self._modules = OrderedDict()
         self.layer_sizes = []
@@ -45,10 +49,11 @@ class Sequential(Module):
             module.initialize()
             self.layer_sizes.append(getattr(module, 'output_size'))
 
-        name = str(len(self._modules)) + "_" + module.__class__.__name__
-        self._modules[name] = module
+        default_name = str(len(self._modules)) + "_" + module.__class__.__name__
+        module.name = default_name
+        self._modules[default_name] = module
 
-        print("Added Module Name: {} ".format(name))
+        print("Added Module Name: {} ".format(default_name))
         try:
             self.add(getattr(module, 'activation'))
         except AttributeError:
@@ -127,15 +132,17 @@ class Sequential(Module):
                 json.dump(dump, f)      
         else:
             return all_params
-        
-    def load_from_disk(self, filename):
+
+    @classmethod
+    def load_from_disk(cls, filename):
         
         with open(filename) as f:
             dump = json.load(f)
         
         loss = dump["loss"]
         all_params = dump["modules"]
-        
+        model = cls()
+
         for name_module, module_params in all_params.items():
             char_index = name_module.find('_')
             module_type = name_module[char_index+1:]
@@ -143,24 +150,54 @@ class Sequential(Module):
             if module_type == "Linear":
                 casted_param = torch.from_numpy(np.array(module_params['weight'])).type(torch.FloatTensor)
                 module = Linear(out=casted_param.shape[1], input_size=casted_param.shape[0])
-            if module_type == "Dropout":
+            elif module_type == "Dropout":
                 module = Dropout(prob=module_params["p_dropout"])
-            if module_type == "ReLU":
+            elif module_type == "ReLU":
                 module = ReLU()
-            if module_type == "Tanh":
+            elif module_type == "Tanh":
                 module = Tanh()
-            if module_type == "Softmax":
+            elif module_type == "Softmax":
                 module = Softmax()
-             
-            self.add(module)
+            else:
+                raise ValueError('Given module_type {} is not valid !'.format(module_type))
+
+            model.add(module)
             
             if module_type == "Linear":
                 for name_param, param in module_params.items():  # go over weight and bias (if not None)
                     casted_param = torch.from_numpy(np.array(param)).type(torch.FloatTensor)
-                    self._modules[name_module].set_param(name_param, casted_param)       
+                    model._modules[name_module].set_param(name_param, casted_param)
         
-        self.loss = LossMSE() if loss == 'MSE' else LossCrossEntropy()
-        
+        model.loss = LossMSE() if loss == 'MSE' else LossCrossEntropy()
+
+    def __eq__(self, other):
+        """
+        TODO
+        equality check for each module as well as loss function ?
+        :param other: Sequential
+        :return:
+        """
+        for (module, other_module) in (self.modules, other.modules):
+            if module != other_module:
+                return False
+
+        # add loss layer as well ?
+        return True
+
+    def __str__(self):
+        """
+        string representation of each module is used
+        :return:
+        """
+        model_summary = "*" * 62 + "\n"
+        model_summary += "Layer Name \t\t Input Shape\t\t Output Shape\n"
+        model_summary += "*" * 62 + "\n"
+        for module in self.modules:
+            model_summary += str(module) + "\n"
+
+        model_summary += "*" * 60 + "\n"
+        return model_summary
+
     @staticmethod
     def accuracy(y_pred, y_test):
         if not torch.is_tensor(y_test):
@@ -169,8 +206,7 @@ class Sequential(Module):
         return (y_pred == y_test).type(torch.FloatTensor).mean()
 
     def print_model(self):
-        for name, module in self._modules.items():
-            print("Name: {}".format(name))
+        print(self)
 
     @property
     def module_names(self):
@@ -185,7 +221,13 @@ class Sequential(Module):
         self._loss = loss_func
 
     @property
+    def modules(self):
+        for module in self._modules.values():
+            yield module
+
+    @property
     def trainable_modules(self):
         for module in self._modules.values():
             if module.trainable:
                 yield module
+
