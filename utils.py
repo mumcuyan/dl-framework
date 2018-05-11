@@ -47,7 +47,10 @@ def finalize_standardplot(fig, ax1, ax2):
     fig.tight_layout()
     plt.subplots_adjust(top=0.9)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5310180443b0ec33cae6f9c4d0b4ef6129067952
 def plot_report(train_report, title="", figsize=(10,6), is_save_fig=False, filename=''):
     fig, ax1, ax2 = prepare_standardplot(title, 'epoch', figsize)
     ax1.plot(train_report["train_loss"], label = "train")
@@ -55,8 +58,16 @@ def plot_report(train_report, title="", figsize=(10,6), is_save_fig=False, filen
     ax2.plot(train_report["train_acc"], label = "train")
     ax2.plot(train_report["val_acc"], label = "validation")
     finalize_standardplot(fig, ax1, ax2)
+<<<<<<< HEAD
     if is_save_fig:
         plt.savefig('{}.pdf'.format(filename), bbox_inches='tight')
         plt.savefig('{}.png'.format(filename), bbox_inches='tight')
 
+=======
+    
+    if is_save_fig:
+        plt.savefig('{}.pdf'.format(filename), bbox_inches='tight')
+        plt.savefig('{}.png'.format(filename), bbox_inches='tight')
+        
+>>>>>>> 5310180443b0ec33cae6f9c4d0b4ef6129067952
     return fig
