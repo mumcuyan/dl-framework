@@ -1,3 +1,4 @@
 TODO:
-* load/save model
+* load/save model -- if time permits
 * test more && codecov.io
+* docker on travis ?

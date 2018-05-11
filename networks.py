@@ -1,8 +1,9 @@
 from modules.sequential import Sequential
 from modules.layers import Linear, Dropout
-from modules.activations import ReLU, Tanh
+
 from modules.losses import LossMSE, LossCrossEntropy
 from optimizers.sgd import SGD
+
 
 def default_net(x_all, y_all, num_of_hidden_layers=3, loss='ce', num_of_neurons=(2, 25, 25, 25, 2), activation='relu', lr=0.1, momentum_coef=0.0, weight_decay=0.0, p_dropout=0.0, num_of_epochs=100, val_split=0.2, verbose=0):
     """

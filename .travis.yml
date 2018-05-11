@@ -1,6 +1,17 @@
-language: python
-python:
-  - "3.5"
+sudo: required
+services:
+  - docker
+
+env:
+  global:
+    - IMAGE_NAME=dl-framework
+
+before_install:
+  - docker --version
+  - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
+
 install:
-   - pip install -r requirements.txt
-script: make test
+   - docker build -t ${IMAGE_NAME}:${TRAVIS_COMMIT} --pull=true .
+
+script:
+  - docker run ${IMAGE_NAME}:${TRAVIS_COMMIT} make test

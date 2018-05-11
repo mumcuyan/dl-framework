@@ -1,6 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
+
 def split_data(x_all, y_all, val_split):
     val_size = int(x_all.shape[0] * val_split)
     train_size = x_all.shape[0] - val_size
@@ -25,6 +26,7 @@ def label2one_hot(labels, num_of_classes=None, val=0):
 def one_hot2label(y_vals: torch.FloatTensor):
     return y_vals.max(1)[1]
 
+
 def prepare_standardplot(title, xlabel, figsize=(10,6)):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
     fig.suptitle(title)
@@ -45,11 +47,16 @@ def finalize_standardplot(fig, ax1, ax2):
     fig.tight_layout()
     plt.subplots_adjust(top=0.9)
 
-def plot_report(train_report, title="", figsize=(10,6)):
+
+def plot_report(train_report, title="", figsize=(10,6), is_save_fig=False, filename=''):
     fig, ax1, ax2 = prepare_standardplot(title, 'epoch', figsize)
     ax1.plot(train_report["train_loss"], label = "train")
     ax1.plot(train_report["val_loss"], label = "validation")
     ax2.plot(train_report["train_acc"], label = "train")
     ax2.plot(train_report["val_acc"], label = "validation")
     finalize_standardplot(fig, ax1, ax2)
+    if is_save_fig:
+        plt.savefig('{}.pdf'.format(filename), bbox_inches='tight')
+        plt.savefig('{}.png'.format(filename), bbox_inches='tight')
+
     return fig
