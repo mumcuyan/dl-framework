@@ -47,7 +47,7 @@ def cat_entropy():
     x_all, y_all = generate_data(num_of_points=500)
     y_all = label2one_hot(y_all, val=0)  # convert labels to 1-hot encoding
 
-    train_report, model = ce_net_1(x_all, y_all, num_of_epochs=2)
+    train_report, model = ce_net_1(x_all, y_all, num_of_epochs=5000)
     # loss1 = model.loss.loss_logging
     for key, val in train_report.items():
         print("key: {} -- size: {}".format(key, len(val)))

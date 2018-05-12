@@ -1,8 +1,27 @@
+import math
 import torch
 import matplotlib.pyplot as plt
 
 
-def split_data(x_all, y_all, val_split):
+def shuffle(x_data, y_data):
+    perm_ = torch.randperm(x_data.shape[0])
+    return x_data[perm_], y_data[perm_]
+
+
+def batch(x_train, y_train, batch_size, is_shuffle=True):
+    if is_shuffle:
+        x_train, y_train = shuffle(x_train, y_train)
+
+    data_size = x_train.shape[0]
+    for start in range(0, data_size, batch_size):
+        end = min(start+batch_size, data_size)
+        yield x_train[start: end], y_train[start: end]
+
+
+def split_data(x_all, y_all, val_split, is_shuffle=True):
+    if is_shuffle:
+        x_all, y_all = shuffle(x_all, y_all)
+
     val_size = int(x_all.shape[0] * val_split)
     train_size = x_all.shape[0] - val_size
     x_train, x_val = torch.split(x_all, [train_size, val_size], dim=0)
@@ -36,6 +55,7 @@ def prepare_standardplot(title, xlabel, figsize=(10,6)):
     ax2.set_ylabel('accuracy [% correct]')
     ax2.set_xlabel(xlabel)
     return fig, ax1, ax2
+
 
 def finalize_standardplot(fig, ax1, ax2):
     ax1handles, ax1labels = ax1.get_legend_handles_labels()

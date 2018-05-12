@@ -27,7 +27,6 @@ class Optimizer:
 
         for key in self.train_report.keys():
             if key in results:
-                print("key: {} -- value: {}".format(key, results[key]))
                 self.train_report[key].append(results[key])
 
         if epoch_id % verbose_freq == 0 and verbose == 1:
@@ -39,5 +38,5 @@ class Optimizer:
                   .format(epoch_id, results['train_loss'], results['train_acc'], results['val_loss'], results['val_acc']))
 
     @abstractmethod
-    def train(self, model, x_train, y_train, num_of_epoch, verbose=0):
+    def train(self, model, x_train, y_train, batch_size=128, num_of_epoch=100, verbose=0):
         pass

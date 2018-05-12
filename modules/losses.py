@@ -83,7 +83,6 @@ class LossCrossEntropy(Loss):
         y_out.clamp_(min=eps) # set each element to at least eps for numerical stability in log
         log_y_out = torch.log(y_out)
         log_y_out[log_y_out != log_y_out] = 0 # set NaNs to 0
-        print(y_out.shape, " -- ", y_target.shape)
         loss_val = - log_y_out * y_target  # N x 2 dim tensor
 
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
@@ -99,7 +98,6 @@ class LossCrossEntropy(Loss):
         # CHECK: given y_out must be a prob distribution e.g: softmax
         row_sum = np.around(y_out.sum(1).numpy()).astype(int)
         ones = np.ones_like(row_sum, dtype=int)
-        print("row_sum: {} -- row_sum_sum: {}".format(row_sum.shape, np.sum(row_sum)))
         assert np.array_equal(row_sum, ones)
 
         self.out = y_out

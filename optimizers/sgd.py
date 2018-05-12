@@ -3,7 +3,7 @@ from tqdm import trange
 from .optimizer import Optimizer
 from modules.sequential import Sequential
 from collections import OrderedDict
-from utils import split_data
+from utils import split_data, batch
 
 
 class SGD(Optimizer):
@@ -11,28 +11,33 @@ class SGD(Optimizer):
     def __init__(self, lr=0.1, momentum_coef=0.0, weight_decay=0.0):
         super(SGD, self).__init__(lr, momentum_coef, weight_decay)
 
-    def train(self, model: Sequential, x_all, y_all, num_of_epochs, val_split: float=0, verbose=1) -> dict:
+    def train(self, model,
+              x_train: torch.FloatTensor,
+              y_train: torch.FloatTensor,
+              num_of_epochs=100,
+              batch_size=128,
+              val_split: float = 0.2,
+              verbose=0,
+              shuffle=True) -> dict:
         """
         :param model: supposed to be a Sequential obj
-        :param x_all: torch.FloatTensor
-        :param y_all: torch.FloatTensor
-        :param num_of_epochs:
+        :param x_train: torch.FloatTensor
+        :param y_train: torch.FloatTensor
+        :param batch_size:
         :param verbose: flag parameter for prints
             0 is silent with trange (tqdm)
             1 all results (train_loss, train_acc, val_loss, val_acc)
+        :param num_of_epochs:
         :param val_split: float number between 0 and 1 indicating which part of given data will be used for validation
+        :param shuffle: boolean flag
         """
 
-        assert x_all.shape[0] == y_all.shape[0]  # sanity check
+        assert x_train.shape[0] == y_train.shape[0]  # sanity check
         if val_split <= 0 or val_split >= 1:
             raise ValueError('validation_split ratio must be between 0 and 1 (exclusive), given {}'
                              .format(val_split))
 
-        perm_ = torch.randperm(x_all.shape[0])
-        x_all = x_all[perm_]
-        y_all = y_all[perm_]
-
-        (x_train, y_train), (x_val, y_val) = split_data(x_all, y_all, val_split=val_split)
+        (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
         print("x_train.shape: {} -- y_train.shape: {}".format(x_train.shape, y_train.shape))
         print("x_val.shape: {} -- y_val.shape: {}".format(x_val.shape, y_val.shape))
 
@@ -40,12 +45,20 @@ class SGD(Optimizer):
 
         range_func = trange if verbose == 0 else range
         for i in range_func(num_of_epochs):
-            results = self._update_params(model, x_train, y_train, x_val, y_val)
+
+            for x_train_batch, y_train_batch in batch(x_train, y_train, batch_size=batch_size):  # go through each batch
+                self._update_params(model, x_train_batch, y_train_batch)
+
+            train_acc, train_loss = model.evaluate(x_train, y_train)
+            val_acc, val_loss = model.evaluate(x_val, y_val)
+            results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
+
             self.save_results(results, i, verbose, verbose_freq=200)
 
         return self.train_report
 
-    def _update_params(self, model: Sequential, x_train, y_train, x_val, y_val) -> dict:
+    def _update_params(self, model: Sequential, x_train, y_train) -> dict:
+
         model.forward(x_train, y_train)
         model.backward()
 
@@ -62,11 +75,6 @@ class SGD(Optimizer):
 
                 new_param = param - self.lr * update
                 module.set_param(name, new_param)
-
-        train_acc, train_loss = model.evaluate(x_train, y_train)
-        val_acc, val_loss = model.evaluate(x_val, y_val)
-
-        return {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
     def _save_gradients(self, model: Sequential, is_default=False):
         for i, module in enumerate(model.trainable_modules):
