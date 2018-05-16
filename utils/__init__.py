@@ -30,7 +30,7 @@ def batch(x_train, y_train, batch_size, is_shuffle=True):
         yield x_train[start: end], y_train[start: end]
 
 
-def split_data(x_all: torch.FLoatTensor, y_all: torch.FLoatTensor, val_split: float, is_shuffle=True):
+def split_data(x_all: torch.FloatTensor, y_all: torch.FloatTensor, val_split: float, is_shuffle=True):
     """
     :param x_all: torch.FloatTensor
     :param y_all: torch.FloatTensor
