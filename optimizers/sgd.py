@@ -46,6 +46,8 @@ class SGD(Optimizer):
             for x_train_batch, y_train_batch in batch(x_train, y_train, batch_size=batch_size):  # go through each batch
                 self._update_params(model, x_train_batch, y_train_batch)
 
+            # After epoch is done, evaluate performance of the model simply calling evaluation on
+            # both train dataset as well as validation dataset
             train_acc, train_loss = model.evaluate(x_train, y_train)
             val_acc, val_loss = model.evaluate(x_val, y_val)
             results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
@@ -54,8 +56,17 @@ class SGD(Optimizer):
 
         return self.train_report
 
-    def _update_params(self, model: Sequential, x_train, y_train) -> dict:
+    def _update_params(self, model: Sequential, x_train, y_train):
+        """
+        after training one-pass by calling forward and backward
+        gradients are set as sepertate attribute inside each trainable layers
+        this gradient might be modified with weight_decay momentum_coefficient settings
+        and set afterward to each corresponding trainable modules
 
+        :param model: is a Sequential object (neural network)
+        :param x_train: batch size of x_train vals
+        :param y_train: batch size of corresponding y_train vals
+        """
         model.forward(x_train, y_train)
         model.backward()
 
@@ -63,7 +74,7 @@ class SGD(Optimizer):
             for name, param in module.params:  # go over weight and bias (if not None)
                 update = module.grads[name]
 
-                if self.weight_decay > 0:
+                if self.weight_decay > 0:  # L2 regularization to gradients
                     update += self.weight_decay * module.grads[name]
 
                 if self.momentum_coef > 0:
@@ -74,6 +85,11 @@ class SGD(Optimizer):
                 module.set_param(name, new_param)
 
     def _save_gradients(self, model: Sequential, is_default=False):
+        """
+        :param model: is a Sequential object
+        :param is_default:
+        :return:
+        """
         for i, module in enumerate(model.trainable_modules):
             self.log_grad[i] = OrderedDict()
 

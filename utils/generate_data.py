@@ -4,11 +4,10 @@ import torch
 
 def get_labels(points: torch.FloatTensor, center: torch.FloatTensor, radius: float):
     """
-
-    :param points:
-    :param center:
-    :param radius:
-    :return:
+    :param points: is a torch.FloatTensor
+    :param center: x_coordinate, y_coordinate as tensor of size 2
+    :param radius: size of radius as float
+    :return: it labels the points inside the circle as 0, otherwise 1
     """
     num_of_points = points.shape[0]
 
@@ -19,13 +18,12 @@ def get_labels(points: torch.FloatTensor, center: torch.FloatTensor, radius: flo
 
 def generate_data(minn=0, maxx=1, radius=1/math.sqrt(2 * math.pi), center=(0.5, 0.5), num_of_points=1000):
     """
-
-    :param minn:
-    :param maxx:
-    :param radius:
-    :param center:
-    :param num_of_points:
-    :return:
+    :param minn: minimum value of the range to generate data
+    :param maxx: maximum value of the range to generate data
+    :param radius: scalar
+    :param center: x_coordinate, y_coordinate as tuple
+    :param num_of_points: number of points to generate
+    :return: torch.FloatTensor of [num_of_points x 2], [num_of_points] as labels
     """
 
     center = torch.FloatTensor([center[0], center[1]])
@@ -35,10 +33,9 @@ def generate_data(minn=0, maxx=1, radius=1/math.sqrt(2 * math.pi), center=(0.5, 
 
 def __generate_grid(x, y):
     """
-
-    :param x:
-    :param y:
-    :return:
+    :param x: x coordinate values from minn to maxx
+    :param y: y coordinate values from minn to maxx
+    :return: cross product of each point given for x and y
     """
     h = x.shape[0]
     w = y.shape[0]
@@ -48,11 +45,10 @@ def __generate_grid(x, y):
 
 def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1/math.sqrt(2 * math.pi)):
     """
-
-    :param minn:
-    :param maxx:
-    :param num_of_points_per_dim:
-    :param radius:
+    :param minn: minimum value of the range to generate data
+    :param maxx: maximum value of the range to generate data
+    :param num_of_points_per_dim: number of points per dimension (x and y coordinates) to generate
+    :param radius: scalar, default value in the projection description
     :return:
     """
 
@@ -65,6 +61,4 @@ def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1/math.s
     center = torch.FloatTensor([val, val])
 
     return points, get_labels(points, center, radius)
-
-
 

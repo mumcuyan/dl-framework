@@ -3,6 +3,9 @@ from torchvision import datasets
 
 
 def convert_to_one_hot_labels(input, target, val=0):
+    """
+    Given input and target, it returns one-hot encoding form
+    """
     tmp = input.new(target.size(0), target.max() + 1).fill_(-1)
     tmp.scatter_(1, target.view(-1, 1), 1.0)
     if val == 0:
@@ -14,12 +17,11 @@ def convert_to_one_hot_labels(input, target, val=0):
 
 def load_data(one_hot_labels=False, normalize=False, flatten=True, data_dir=None, cifar=False, full=True, tiny=False,
               val=0):
+    """
+    This function is provided by instructor to get cifar or mnist dataset using torchvision.dataset package
+    """
+
     if data_dir is None:
-        """
-        data_dir = os.environ.get('PYTORCH_DATA_DIR')
-        if data_dir is None:
-            data_dir = './data'
-        """
         data_dir = './data'
 
     if cifar is not None and cifar:

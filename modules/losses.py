@@ -5,20 +5,33 @@ from .module import Module
 
 class Loss(Module):
 
-    def __init__(self, take_avg: bool):
-        super(Loss, self).__init__(trainable=False)
+    def __init__(self, take_avg: bool=True):
         """
         :param take_avg: flag variable for whether taking avg of data-point each loss
-        :param loss_per_row:
         """
+        super(Loss, self).__init__(trainable=False)
         self.out, self.target = None, None
         self.take_avg = take_avg  # or sum over all elements
 
     def reset(self):
+        """
+        this function sets forward specific variables namely target, out to None
+        to make sure that when backward layer is called, it does not use previous call's values for target and out
+        instead, it raises an exception. This allows us to detect bugs much easily
+        """
         self.target = None
         self.out = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
+        """
+        Main forward implementation of loss function must be written here
+        Because model will use this function when testing or predicting dataset (when not training)
+        The reason is not to break/change attributes self.out and self.target because they will be used for training
+        procedure.
+        :param: y_out: predicted y values (torch.FloatTensor)
+        :param: y_target: true y values (torch.FloatTensor
+        :return: calculated loss as a scalar
+        """
         raise NotImplementedError
 
     def forward(self, *inputs):
@@ -35,9 +48,10 @@ class LossMSE(Loss):
 
     def __call__(self, y_out, y_target):
         """
-        :param y_out: final
-        :param y_target:
-        :return:
+        main forward implementation of LossMSE
+        :param y_out: tensor.FloatTensor with shape: N x feature_dim
+        :param y_target: tensor.FloatTensor with same shape y_out
+        :return: calculated loss as a scalar
         """
         loss_val = torch.pow(y_out - y_target, 2).sum(1)
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
@@ -45,6 +59,11 @@ class LossMSE(Loss):
         return loss_val.item()
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
+        """
+        :param y_out: tensor.FloatTensor with shape: N x feature_dim
+        :param y_target: tensor.FloatTensor with same shape y_out
+        :return: calculated loss as a scalar, with setting out and target attributes for backward operation
+        """
         self.out = y_out
         self.target = y_target
 
@@ -76,11 +95,10 @@ class LossCrossEntropy(Loss):
             else: use forward to modify out and target attributes (for training)
         :param y_out: tensor.FloatTensor with shape: N x feature_dim
         :param y_target: tensor.FloatTensor with same shape y_out
-        :return: value of defined loss function
+        :return: calculated loss as a scalar
         """
-        
         eps = 1e-6
-        y_out.clamp_(min=eps) # set each element to at least eps for numerical stability in log
+        y_out.clamp_(min=eps)  # set each element to at least eps for numerical stability in log
         log_y_out = torch.log(y_out)
         log_y_out[log_y_out != log_y_out] = 0 # set NaNs to 0
         loss_val = - log_y_out * y_target  # N x 2 dim tensor
@@ -91,9 +109,9 @@ class LossCrossEntropy(Loss):
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
         """
-        :param y_out:
-        :param y_target:
-        :return:
+        :param y_out: tensor.FloatTensor with shape: N x feature_dim
+        :param y_target: tensor.FloatTensor with same shape y_out
+        :return: calculated loss as a scalar, with setting out and target attributes for backward operation
         """
         # CHECK: given y_out must be a prob distribution e.g: softmax
         row_sum = np.around(y_out.sum(1).numpy()).astype(int)
@@ -104,15 +122,13 @@ class LossCrossEntropy(Loss):
         self.target = y_target  # save given parameter for backward function
         return self(y_out, y_target)
 
-    # derivation
-    # http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/
     def backward(self):
         """
         calculate derivative of CrossEntropyLoss wrt input of softmax layer
         so there will be no backward implementation for softmax class
-        Please also note that this implementation assumes that softmax object
+        Please also note that this implementation assumes softmax object
         is used in final activation function in the network
-        :return:
+        :return: derivative of categorical crossentropy (combined with softmax layer)
         """
         gradwrtoutputt = torch.FloatTensor([[1]])
         dinput = (self.out - self.target) * gradwrtoutputt

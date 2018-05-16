@@ -3,10 +3,9 @@ import torch
 
 def shuffle(x_data, y_data):
     """
-
-    :param x_data:
-    :param y_data:
-    :return:
+    This function shuffles x_data and y_data with the same permutation
+    :param x_data: torch.FloatTensor
+    :param y_data: torch.FloatTensor
     """
     perm_ = torch.randperm(x_data.shape[0])
     return x_data[perm_], y_data[perm_]
@@ -14,12 +13,13 @@ def shuffle(x_data, y_data):
 
 def batch(x_train, y_train, batch_size, is_shuffle=True):
     """
-
-    :param x_train:
-    :param y_train:
-    :param batch_size:
-    :param is_shuffle:
-    :return:
+    This function is a generator for training procedure, given batch size
+    it only loads the data to the memory, using python generator to reduce memory footprint
+    :param x_train: 2D (N x feature_size) torch.FloatTensor
+    :param y_train: 2D (N x class_number) torch.FloatTensor
+    :param batch_size: batch-size is an integer
+    :param is_shuffle: boolean flag whether to shuffle before splitting
+    :return: x_train and y_train, size of batch_size
     """
     if is_shuffle:
         x_train, y_train = shuffle(x_train, y_train)
@@ -30,14 +30,13 @@ def batch(x_train, y_train, batch_size, is_shuffle=True):
         yield x_train[start: end], y_train[start: end]
 
 
-def split_data(x_all, y_all, val_split, is_shuffle=True):
+def split_data(x_all: torch.FLoatTensor, y_all: torch.FLoatTensor, val_split: float, is_shuffle=True):
     """
-
-    :param x_all:
-    :param y_all:
-    :param val_split:
-    :param is_shuffle:
-    :return:
+    :param x_all: torch.FloatTensor
+    :param y_all: torch.FloatTensor
+    :param val_split: is a ratio between 0 and 1
+    :param is_shuffle: boolean flag
+    :return: (train_dataset), (test_dataset) split by x_all and y_all
     """
     if is_shuffle:
         x_all, y_all = shuffle(x_all, y_all)
@@ -52,11 +51,10 @@ def split_data(x_all, y_all, val_split, is_shuffle=True):
 
 def label2one_hot(labels, num_of_classes=None, val=0):
     """
-
-    :param labels:
-    :param num_of_classes:
-    :param val:
-    :return:
+    :param labels: list of values
+    :param num_of_classes: number of unique classe
+    :param val: remaining value other 1, For example 0001000 or -1-1-11-1-1-1
+    :return: one-hot encoded version of labels (torch.FloatTensor size of N x number_of_classes)
     """
 
     if num_of_classes is None:
@@ -71,8 +69,8 @@ def label2one_hot(labels, num_of_classes=None, val=0):
 
 def one_hot2label(y_vals: torch.FloatTensor):
     """
-    :param y_vals:
-    :return:
+    :param y_vals: one-hot form of data
+    :return: returns the indices of max value for each row as true label
     """
-    return y_vals.max(1)[1]
+    return y_vals.max(1)[1]  # works because 1 is always the maximum value given for a row of data
 

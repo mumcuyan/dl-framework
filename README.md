@@ -26,10 +26,10 @@ Ahmed Furkan Ozkalay, Aras Mumcuyan
     report = opt.train(model, x_train, y_train, num_of_epocs=1000, batch_size=128, val_split=0.2, verbose=1)
     
     # evaluating model
-    test_accuracy, test_loss = model.evaluate(x, y)
+    test_accuracy, test_loss = model.evaluate(x_test, y_test)
     
     # predicting test 
-    y_preds = model.predict(x)
+    y_preds = model.predict(x_test)
     
 ### Docker 
 
@@ -40,12 +40,12 @@ Ahmed Furkan Ozkalay, Aras Mumcuyan
     
     # to run test.py file 
         docker run dl-framework python test.py
-     
+    
+    # go to localhost:8888/ to run 
     # to run it as a background task 
         docker run --rm -d -v "$(pwd):/app" -p 8888:8888 dl-framework
     
     # to access docker environment terminal
-    # go to localhost:8888/ to run
          docker run -v "$(pwd):/app" -it dl-framework /bin/bash
      
  

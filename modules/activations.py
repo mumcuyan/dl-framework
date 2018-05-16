@@ -1,12 +1,17 @@
-import math
 import torch
 from .module import Module
 from .module import require_dimension, require_not_none
 
 
 class ActivationModule(Module):
-
+    """
+    All of the activation layer must extend this class
+    implementing forward and backward layer
+    """
     def __init__(self):
+        """
+        Activation layers do not have any parameter to learn
+        """
         super(ActivationModule, self).__init__(trainable=False)
 
     def forward(self, *input):
@@ -20,7 +25,9 @@ class ActivationModule(Module):
 
 
 class ReLU(ActivationModule):
-
+    """
+    ReLU activation function implementation: max(0, x)
+    """
     def __init__(self):
         super(ReLU, self).__init__()
         self.input = None
@@ -28,6 +35,7 @@ class ReLU(ActivationModule):
     @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
         self.input = tensor_in
+        # vectorize version of max(0, x)
         tensor_out = torch.max(tensor_in, torch.zeros(tensor_in.size()))
 
         return tensor_out
@@ -66,7 +74,7 @@ class Softmax(ActivationModule):
 
 class Tanh(ActivationModule):
     """
-
+    tanh activation function: (e^z - e^(-z)) / (e^z + e^(-z))
     """
     def __init__(self):
         super(Tanh, self).__init__()

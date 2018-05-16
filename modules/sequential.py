@@ -16,9 +16,8 @@ class Sequential(Module):
 
     def __init__(self, modules=None, loss_func=None):
         """
-
-        :param modules:
-        :param loss_func:
+        :param modules: must behave like Sequence which can be either list or tuple (built-in)
+        :param loss_func: is a Loss defined in losses.py which will be called for loss calculation
         """
         super(Sequential, self).__init__(trainable=False)
         self._modules = OrderedDict()
@@ -35,9 +34,8 @@ class Sequential(Module):
 
     def add(self, module: Module):
         """
-
-        :param module:
-        :return:
+        this function can be used for adding layers (Activations, Linear or Dropout)
+        :param module: is a Module (not Sequential)
         """
 
         if module is None or isinstance(module, Loss):
@@ -70,10 +68,12 @@ class Sequential(Module):
 
     def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=None):
         """
+        This function will be used for training, for more detail you may refer to Optimizer's train method to
+        see how it is used.
 
-        :param x_input:
-        :param y_input:
-        :return:
+        :param x_input: input data is passed, must be 2D
+        :param y_input: if this parameter passed, this function is used for training, if not it is test or prediction
+        :return: predicted values for given dataset (x_input) based on network
         """
         train = y_input is not None
         y_pred = x_input
@@ -82,12 +82,16 @@ class Sequential(Module):
                 continue
             y_pred = module.forward(y_pred)
 
-        if train:
+        if train:  # calculate loss for training
             self._loss.forward(y_pred, y_input)
 
         return y_pred
 
     def backward(self):
+        """
+        start backward propogation in reverse order, each module takes gradient wrt to output
+        """
+
         gradwrtoutputt = self._loss.backward()
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
@@ -129,10 +133,10 @@ class Sequential(Module):
 
     def save_to_disk(self, filename, is_save_to_disk=True):
         """
-
-        :param filename:
-        :param is_save_to_disk:
-        :return:
+        ????
+        :param filename: ???
+        :param is_save_to_disk: ????
+        :return: ???
         """
         dump = OrderedDict()
         all_params = OrderedDict()
@@ -156,9 +160,9 @@ class Sequential(Module):
     @classmethod
     def load_from_disk(cls, filename):
         """
-
-        :param filename:
-        :return:
+        ???
+        :param filename: ??
+        :return: ???
         """
         
         with open(filename) as f:
@@ -197,9 +201,10 @@ class Sequential(Module):
 
     def __eq__(self, other):
         """
+        TODO
         equality check for each module as well as loss function ?
         :param other: Sequential
-        :return:
+        :return: boolean value whether both object are the same structure or not
         """
         for (module, other_module) in (self.modules, other.modules):
             if module != other_module:
@@ -210,8 +215,9 @@ class Sequential(Module):
 
     def __str__(self):
         """
-        string representation of each module is used
-        :return:
+        string representation of each module is accumulated in a string
+        to print summary of the model
+        :return: string -> summary of model
         """
         model_summary = "*" * 62 + "\n"
         model_summary += "Layer Name \t\t Input Shape\t\t Output Shape\n"
@@ -228,10 +234,8 @@ class Sequential(Module):
     @staticmethod
     def accuracy(y_pred, y_test):
         """
-
-        :param y_pred:
-        :param y_test:
-        :return:
+        given predictions and true values, calculates percentile of success
+        :return float value as a percentages
         """
         if not torch.is_tensor(y_test):
             raise TypeError('Given x_test parameter must be torch.Tensor !')
@@ -260,6 +264,10 @@ class Sequential(Module):
 
     @property
     def trainable_modules(self):
+        """
+        trainable attribute used for getting
+        :return:
+        """
         for module in self._modules.values():
             if module.trainable:
                 yield module

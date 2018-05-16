@@ -7,6 +7,13 @@ from optimizers import SGD
 
 
 def get_categorical_model(input_neurons, output_neurons, layers=None):
+    """
+    creates a model with Categorical Crossentropy Loss
+    :param input_neurons: input neuron number
+    :param output_neurons: output neuron number
+    :param layers: list of intermediate neuron sizes, default is the number of neurons and layer sizes for neuron
+    :return: network with Categorical Crossentropy loss
+    """
     if layers is None:
         layers = [25, 25, 25]
 
@@ -29,6 +36,13 @@ def get_categorical_model(input_neurons, output_neurons, layers=None):
 
 
 def get_mse_model(input_neurons, output_neurons, layers=None):
+    """
+    creates a model with MSE loss
+    :param input_neurons: input neuron number
+    :param output_neurons: output neuron number
+    :param layers: list of intermediate neuron sizes, default is the number of neurons and layer sizes for neuron
+    :return: network with MSE loss
+    """
     if layers is None:
         layers = [25, 25, 25]
 
