@@ -7,12 +7,12 @@ def get_labels(points: torch.FloatTensor, center: torch.FloatTensor, radius: flo
     :param points: is a torch.FloatTensor
     :param center: x_coordinate, y_coordinate as tensor of size 2
     :param radius: size of radius as float
-    :return: it labels the points inside the circle as 0, otherwise 1
+    :return: it labels the points inside the circle as 1, otherwise 0
     """
     num_of_points = points.shape[0]
 
-    labels = torch.FloatTensor(num_of_points).fill_(1)
-    labels[torch.pow(points - center, 2).sum(1) <= radius ** 2] = 0
+    labels = torch.FloatTensor(num_of_points).fill_(0)
+    labels[torch.pow(points - center, 2).sum(1) <= radius ** 2] = 1
     return labels
 
 
