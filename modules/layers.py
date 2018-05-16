@@ -177,4 +177,5 @@ class Dropout(Module):
         return grad
 
     def __str__(self):
-        return self.name + " (p: " + str(self.prob) + ")"
+
+        return "{} -p: {: .2f}".format(self.name, 1-self.prob)

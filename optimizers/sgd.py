@@ -38,9 +38,6 @@ class SGD(Optimizer):
                              .format(val_split))
 
         (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
-        print("x_train.shape: {} -- y_train.shape: {}".format(x_train.shape, y_train.shape))
-        print("x_val.shape: {} -- y_val.shape: {}".format(x_val.shape, y_val.shape))
-
         self._save_gradients(model, is_default=True)
 
         range_func = trange if verbose == 0 else range
@@ -53,7 +50,7 @@ class SGD(Optimizer):
             val_acc, val_loss = model.evaluate(x_val, y_val)
             results = {'train_loss': train_loss, 'train_acc': train_acc, 'val_loss': val_loss, 'val_acc': val_acc}
 
-            self.save_results(results, i, verbose, verbose_freq=200)
+            self.save_results(results, i, verbose, verbose_freq=100)
 
         return self.train_report
 

@@ -1,2 +1,3 @@
 from .sgd import SGD
-__all__ = ['SGD']
+from .optimizer import Optimizer
+__all__ = ['SGD', 'Optimizer']

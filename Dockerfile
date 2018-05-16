@@ -43,7 +43,7 @@ RUN pip3 --no-cache-dir install --upgrade \
         torchvision==0.2.1 \
         jupyter
 
-# Expose the PostgreSQL port
+# Expose the JupterNotebook port
 EXPOSE 8888
 
 RUN mkdir /app

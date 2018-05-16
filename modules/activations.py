@@ -30,11 +30,6 @@ class ReLU(ActivationModule):
         self.input = tensor_in
         tensor_out = torch.max(tensor_in, torch.zeros(tensor_in.size()))
 
-        if math.isnan(tensor_out.sum()):
-            print("@relu tensor_in: {}".format(tensor_in))
-            print("@relu tensor_out: {}".format(tensor_out))
-            exit(1)
-
         return tensor_out
 
     @require_not_none('input')
@@ -70,7 +65,9 @@ class Softmax(ActivationModule):
 
 
 class Tanh(ActivationModule):
+    """
 
+    """
     def __init__(self):
         super(Tanh, self).__init__()
         self.output = None
@@ -88,42 +85,3 @@ class Tanh(ActivationModule):
         self.output = None
         return gradwrtoutput * dtanh
 
-
-"""
-    Softmax backward layer
-    # https://medium.com/@aerinykim/how-to-implement-the-softmax-derivative-independently-from-any-loss-function-ae6d44363a9d
-    # numpy conversion, might not work
-    def backward(self, gradwrtoutput: torch.FloatTensor):
-    
-    super().dim_check("backward grad @ Softmax", gradwrtoutput, 2)
-    softmax_np = self.output.numpy()
-    softmax_np = softmax_np.reshape(-1, 1)
-    dsoftmax = torch.from_numpy(np.diagflat(softmax_np) - np.dot(softmax_np, softmax_np.T))
-
-    return gradwrtoutput * dsoftmax
-"""
-
-"""
-class Sigmoid(ActivationModule):
-
-    # TODO: training is problematic, idk why
-    def __init__(self):
-        super(Sigmoid, self).__init__()
-        self.output = None
-
-    def forward(self, tensor_in: torch.FloatTensor):
-        super().dim_check("forward input @ Sigmoid", tensor_in, 2)
-        tensor_out = torch.sigmoid(tensor_in)
-        # tensor_out = 1/(1+torch.exp(-tensor_in))
-        self.output = tensor_out
-        return tensor_out
-
-    def backward(self, gradwrtoutput: torch.FloatTensor):
-        super().dim_check("backward grad @ Sigmoid", gradwrtoutput, 2)
-
-        dsigmoid = self.output * (1 - self.output)
-        self.output = None  # reset output None
-        # return torch.mm(gradwrtoutput, dsigmoid.transpose(0,1))
-        return gradwrtoutput * dsigmoid
-
-"""

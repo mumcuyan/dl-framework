@@ -18,6 +18,10 @@ class SequentialTest(BaseTest, TestCase):
         super().setUp()
 
     def test_init_not_input_size(self):
+        """
+
+        :return:
+        """
         with self.assertRaises(InputSizeNotFoundError):
             model = Sequential(
                 [
@@ -27,6 +31,10 @@ class SequentialTest(BaseTest, TestCase):
             )
 
     def test_init_not_compatible(self):
+        """
+
+        :return:
+        """
 
         with self.assertRaises(NotCompatibleError):
             model = Sequential(
@@ -38,9 +46,17 @@ class SequentialTest(BaseTest, TestCase):
             )
 
     def test_training(self):
+        """
+
+        :return:
+        """
         pass
 
     def test_save_model(self):
+        """
+
+        :return:
+        """
         model = Sequential()
         model.add(Linear(input_size=2, out=24, activation='tanh'))
         model.add(Linear(input_size=24, out=2, activation='tanh'))
@@ -48,6 +64,10 @@ class SequentialTest(BaseTest, TestCase):
         pass
 
     def test_load_model(self):
+        """
+
+        :return:
+        """
         model = Sequential()
         model.add(Linear(input_size=2, out=24, activation='tanh'))
         model.add(Linear(input_size=24, out=2, activation='tanh'))

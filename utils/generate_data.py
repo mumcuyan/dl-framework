@@ -1,9 +1,15 @@
-import numpy as np
+import math
 import torch
-import matplotlib.pyplot as plt
 
 
 def get_labels(points: torch.FloatTensor, center: torch.FloatTensor, radius: float):
+    """
+
+    :param points:
+    :param center:
+    :param radius:
+    :return:
+    """
     num_of_points = points.shape[0]
 
     labels = torch.FloatTensor(num_of_points).fill_(1)
@@ -11,26 +17,49 @@ def get_labels(points: torch.FloatTensor, center: torch.FloatTensor, radius: flo
     return labels
 
 
-def generate_data(minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), center=(0.5, 0.5), num_of_points=1000):
+def generate_data(minn=0, maxx=1, radius=1/math.sqrt(2 * math.pi), center=(0.5, 0.5), num_of_points=1000):
+    """
+
+    :param minn:
+    :param maxx:
+    :param radius:
+    :param center:
+    :param num_of_points:
+    :return:
+    """
 
     center = torch.FloatTensor([center[0], center[1]])
     points = torch.Tensor(num_of_points, 2).uniform_(minn, maxx)
     return points, get_labels(points, center, radius)
 
 
-def generate_grid(x, y):
+def __generate_grid(x, y):
+    """
+
+    :param x:
+    :param y:
+    :return:
+    """
     h = x.shape[0]
     w = y.shape[0]
     grid = torch.stack([x.repeat(w), y.repeat(h, 1).t().contiguous().view(-1)],1)
     return grid
 
 
-def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1 / np.sqrt(2 * np.pi)):
+def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1/math.sqrt(2 * math.pi)):
+    """
+
+    :param minn:
+    :param maxx:
+    :param num_of_points_per_dim:
+    :param radius:
+    :return:
+    """
 
     coor_x = torch.linspace(minn, maxx, num_of_points_per_dim)
     coor_y = torch.linspace(minn, maxx, num_of_points_per_dim)
 
-    points = generate_grid(coor_x, coor_y)
+    points = __generate_grid(coor_x, coor_y)
 
     val = (minn + maxx) / 2
     center = torch.FloatTensor([val, val])
@@ -38,10 +67,4 @@ def generate_grid_data(minn=0, maxx=1, num_of_points_per_dim=51, radius=1 / np.s
     return points, get_labels(points, center, radius)
 
 
-def plot_data(points, labels=0, minn=0, maxx=1, radius=1 / np.sqrt(2 * np.pi), center=np.array([0.5, 0.5])):
-    circle = plt.Circle(center, radius, color='r', fill=False, linewidth=5)
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.add_patch(circle)
-    ax.scatter(points[:, 0], points[:, 1], c=labels)
-    ax.set_xlim(minn, maxx)
-    ax.set_ylim(minn, maxx)
+

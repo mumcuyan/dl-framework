@@ -15,7 +15,11 @@ import torch
 class Sequential(Module):
 
     def __init__(self, modules=None, loss_func=None):
+        """
 
+        :param modules:
+        :param loss_func:
+        """
         super(Sequential, self).__init__(trainable=False)
         self._modules = OrderedDict()
         self.layer_sizes = []
@@ -24,11 +28,17 @@ class Sequential(Module):
                 for idx, module in enumerate(modules):
                     self.add(module)
             else:
-                raise TypeError('Given parameter {} is not valid '.format(type(modules)))
+                raise TypeError('Given parameter type {} is invalid, required: {} '
+                                .format(type(modules), "collections.Sequence"))
 
         self._loss = loss_func
 
     def add(self, module: Module):
+        """
+
+        :param module:
+        :return:
+        """
 
         if module is None or isinstance(module, Loss):
             raise ValueError('Given object type is Loss is not valid !')
@@ -53,14 +63,18 @@ class Sequential(Module):
         module.name = default_name
         self._modules[default_name] = module
 
-        print("Added Module Name: {} ".format(default_name))
         try:
             self.add(getattr(module, 'activation'))
         except AttributeError:
             pass
 
     def forward(self, x_input: torch.FloatTensor, y_input: torch.FloatTensor=None):
+        """
 
+        :param x_input:
+        :param y_input:
+        :return:
+        """
         train = y_input is not None
         y_pred = x_input
         for module in self._modules.values():
@@ -114,6 +128,12 @@ class Sequential(Module):
             return acc_val, loss_val, y_pred.max(1)[1]
 
     def save_to_disk(self, filename, is_save_to_disk=True):
+        """
+
+        :param filename:
+        :param is_save_to_disk:
+        :return:
+        """
         dump = OrderedDict()
         all_params = OrderedDict()
         for name_module, module in self._modules.items():
@@ -135,6 +155,11 @@ class Sequential(Module):
 
     @classmethod
     def load_from_disk(cls, filename):
+        """
+
+        :param filename:
+        :return:
+        """
         
         with open(filename) as f:
             dump = json.load(f)
@@ -172,7 +197,6 @@ class Sequential(Module):
 
     def __eq__(self, other):
         """
-        TODO
         equality check for each module as well as loss function ?
         :param other: Sequential
         :return:
@@ -195,15 +219,24 @@ class Sequential(Module):
         for module in self.modules:
             model_summary += str(module) + "\n"
 
-        model_summary += "*" * 60 + "\n"
+        model_summary += "*" * 62 + "\n"
+        model_summary += 'Loss Function: \t\t{} \n'.format(self.loss.__class__.__name__)
+
+        model_summary += "*" * 62 + "\n"
         return model_summary
 
     @staticmethod
     def accuracy(y_pred, y_test):
+        """
+
+        :param y_pred:
+        :param y_test:
+        :return:
+        """
         if not torch.is_tensor(y_test):
             raise TypeError('Given x_test parameter must be torch.Tensor !')
 
-        return (y_pred == y_test).type(torch.FloatTensor).mean()
+        return (y_pred == y_test).type(torch.FloatTensor).mean().item()
 
     def print_model(self):
         print(self)
