@@ -6,10 +6,13 @@ def convert_to_one_hot_labels(input, target, val=0):
     """
     Given input and target, it returns one-hot encoding form
     """
+    
     tmp = input.new(target.size(0), target.max() + 1).fill_(-1)
     tmp.scatter_(1, target.view(-1, 1), 1.0)
+    # for some activation functions, e.g. relu
     if val == 0:
         ret = (tmp + 1) / 2
+    # for some activation functions, e.g. tanh
     if val == -1:
         ret = tmp
     return ret

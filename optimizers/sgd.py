@@ -1,10 +1,10 @@
 import torch
 from tqdm import trange
 from .optimizer import Optimizer
-from modules.sequential import Sequential
 from collections import OrderedDict
 from utils import split_data, batch
 from exceptions import ValidationSetNotFound
+from modules import Sequential
 
 
 class SGD(Optimizer):
@@ -35,7 +35,6 @@ class SGD(Optimizer):
         :param shuffle: boolean flag
         """
         assert x_train.shape[0] == y_train.shape[0]  # sanity check
-
         if val_set is not None:
             try:
                 x_val, y_val = val_set
@@ -54,6 +53,7 @@ class SGD(Optimizer):
         for i in range_func(num_of_epochs):
 
             for x_train_batch, y_train_batch in batch(x_train, y_train, batch_size=batch_size):  # go through each batch
+                # update parameters using current batch
                 self._update_params(model, x_train_batch, y_train_batch)
 
             # After epoch is done, evaluate performance of the model simply calling evaluation on
@@ -77,21 +77,31 @@ class SGD(Optimizer):
         :param x_train: batch size of x_train vals
         :param y_train: batch size of corresponding y_train vals
         """
+        
+        # forward pass of model
         model.forward(x_train, y_train)
+        # backward pass of model
         model.backward()
+        # now each module has log of gradient of each of its parameters
 
-        for i, module in enumerate(model.trainable_modules):  # go over fully connected layers
+        for i, module in enumerate(model.trainable_modules):  # go over trainable modules (linear layers)
             for name, param in module.params:  # go over weight and bias (if not None)
+                # take corresponding gradient as update
                 update = module.grads[name]
-
-                if self.weight_decay > 0:  # L2 regularization to gradients
+                
+                if self.weight_decay > 0:  # L2 regularization for weights by weight decaying
+                    # some fraction of parameter is added to update
                     update += self.weight_decay * module.grads[name]
 
                 if self.momentum_coef > 0:
+                    # add fraction of logged gradient from previous update to update, as momentum
                     update += self.momentum_coef * self.log_grad[i][name]
+                    # log the gradient for later use, for momentum
                     self.log_grad[i][name] = module.grads[name]
-
+                
+                # find new value of parameter
                 new_param = param - self.lr * update
+                # set module's corresponding parameter to new value
                 module.set_param(name, new_param)
 
     def _save_gradients(self, model: Sequential, is_default=False):
@@ -100,9 +110,14 @@ class SGD(Optimizer):
         :param is_default:
         :return:
         """
+        
+        # traverse each trainable module
         for i, module in enumerate(model.trainable_modules):
+            # initialize log for gradients as OrderedDict
             self.log_grad[i] = OrderedDict()
-
+            
+            # traverse each param for module
             for name, param in module.params:
+                # log gradient
                 self.log_grad[i][name] = 0 if is_default else module.grads[name]
 

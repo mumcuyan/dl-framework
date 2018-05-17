@@ -26,7 +26,7 @@ def get_categorical_model(input_neurons, output_neurons, layers=None):
         model.add(Linear(out=layers[idx], input_size=layers[idx - 1], activation=default_act))
         idx += 1
 
-    model.add(Dropout(prob=0.2))
+    # model.add(Dropout(prob=0.2))
     model.add(Linear(out=output_neurons, activation='softmax'))
 
     # Set loss function to model: Sequential object
@@ -55,7 +55,7 @@ def get_mse_model(input_neurons, output_neurons, layers=None):
         model.add(Linear(out=layers[idx], input_size=layers[idx - 1], activation=default_act))
         idx += 1
 
-    model.add(Dropout(prob=0.2))
+    # model.add(Dropout(prob=0.2))
     model.add(Linear(out=output_neurons, activation='tanh'))
 
     # Set loss function to model: Sequential object
@@ -71,7 +71,7 @@ def train(model, train_dataset, test_dataset):
 
     lr = 0.2
     momentum_coef = 0
-    weight_decay = 0.2
+    weight_decay = 0
 
     print(model)
 

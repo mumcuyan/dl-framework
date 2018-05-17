@@ -20,13 +20,15 @@ class Optimizer:
             raise ValueError('Learning rate cannot be negative !')
         if momentum_coef < 0:
             raise ValueError('Momentum coefficient cannot be negative !')
-
+        
+        # logged grads for momentum
         self.log_grad = OrderedDict()
         self.lr = lr
         self.weight_decay = weight_decay
         self.momentum_coef = momentum_coef
 
         self.keys = ['train_loss', 'train_acc', 'val_loss', 'val_acc']
+        # keys in each epoch of training
         self.train_report = {key: [] for key in self.keys}
 
     def save_results(self, results: dict, epoch_id, verbose, verbose_freq):
@@ -40,8 +42,10 @@ class Optimizer:
         """
         for key in self.train_report.keys():
             if key in results:
+                # save results for later use
                 self.train_report[key].append(results[key])
-
+        
+        # report results
         if epoch_id != 0 and epoch_id % verbose_freq == 0 and verbose == 1:
             self.report_results(results, epoch_id)
 

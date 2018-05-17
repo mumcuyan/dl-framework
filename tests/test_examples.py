@@ -21,7 +21,7 @@ class NetworkTest(TestCase):
         self.y_train_mse = label2one_hot(y_train_label, val=-1)  # convert
 
         self.ce_funcs = [get_network, get_network_ce_1, get_network_ce_2, get_network_ce_3, get_network_ce_4]
-        self.mse_funcs = [get_network, get_network_mse_1, get_network_mse_2, get_network_mse_3]
+        self.mse_funcs = [get_network_mse_1, get_network_mse_2, get_network_mse_3]
 
     def test_ce_funcs(self):
         raised = False
