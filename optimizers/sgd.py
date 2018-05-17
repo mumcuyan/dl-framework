@@ -4,6 +4,7 @@ from .optimizer import Optimizer
 from modules.sequential import Sequential
 from collections import OrderedDict
 from utils import split_data, batch
+from exceptions import ValidationSetNotFound
 
 
 class SGD(Optimizer):
@@ -17,6 +18,7 @@ class SGD(Optimizer):
               num_of_epochs=100,
               batch_size=128,
               val_split: float = 0.2,
+              val_set=None,
               verbose=0,
               shuffle=True) -> dict:
         """
@@ -27,17 +29,26 @@ class SGD(Optimizer):
         :param verbose: flag parameter for prints
             0 is silent with trange (tqdm)
             1 all results (train_loss, train_acc, val_loss, val_acc)
-        :param num_of_epochs:
+        :param val_set: validation set as (x_va
+        :param num_of_epochs: number of epoch for training
         :param val_split: float number between 0 and 1 indicating which part of given data will be used for validation
         :param shuffle: boolean flag
         """
-
         assert x_train.shape[0] == y_train.shape[0]  # sanity check
-        if val_split <= 0 or val_split >= 1:
-            raise ValueError('validation_split ratio must be between 0 and 1 (exclusive), given {}'
-                             .format(val_split))
 
-        (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
+        if val_set is not None:
+            try:
+                x_val, y_val = val_set
+            except ValueError:
+                raise ValidationSetNotFound('Validation set is not set properly, please pass val_set as tuple of '
+                                            '(x_val, y_val)')
+        else:
+            if val_split <= 0 or val_split >= 1:
+                ValidationSetNotFound('Validation split must be between 0 and 1, given val_split: {}'.format(val_split))
+
+            (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
+
+        print('validation dataset shapes: {} -- {}'.format(x_val.shape, y_val.shape))
         self._save_gradients(model, is_default=True)
 
         range_func = trange if verbose == 0 else range
@@ -95,3 +106,4 @@ class SGD(Optimizer):
 
             for name, param in module.params:
                 self.log_grad[i][name] = 0 if is_default else module.grads[name]
+

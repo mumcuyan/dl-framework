@@ -38,6 +38,7 @@ def split_data(x_all: torch.FloatTensor, y_all: torch.FloatTensor, val_split: fl
     :param is_shuffle: boolean flag
     :return: (train_dataset), (test_dataset) split by x_all and y_all
     """
+
     if is_shuffle:
         x_all, y_all = shuffle(x_all, y_all)
 

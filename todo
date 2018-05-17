@@ -1,6 +1,4 @@
 TODO:
 * load/save model -- if time permits
 * test more && codecov.io
-* readme
 * what if loss is None ?
-* comment the code

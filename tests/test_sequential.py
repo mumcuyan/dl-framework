@@ -2,12 +2,18 @@ from unittest import TestCase
 from modules import Sequential, Linear
 from exceptions import *
 
+from utils import generate_data
+from examples import networks
 
 class BaseTest:
     pass
 
 
 class SequentialTest(BaseTest, TestCase):
+    """
+    This is a unit test class for Sequential object defined in modules.
+    You can check each function description for more detail
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -16,6 +22,7 @@ class SequentialTest(BaseTest, TestCase):
         This method is run once before _each_ test method is executed
         """
         super().setUp()
+
 
     def test_init_not_input_size(self):
         """
@@ -31,10 +38,6 @@ class SequentialTest(BaseTest, TestCase):
             )
 
     def test_init_not_compatible(self):
-        """
-
-        :return:
-        """
 
         with self.assertRaises(NotCompatibleError):
             model = Sequential(

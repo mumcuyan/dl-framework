@@ -21,3 +21,12 @@ class NotCompatibleError(Exception):
     If this requirement could not be met, NotCompatibleError is raised
     """
     pass
+
+
+class ValidationSetNotFound(Exception):
+    """
+    If neither validation set nor validation split is passed to train method for
+    Optimizer
+    """
+
+    pass

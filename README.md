@@ -14,7 +14,7 @@ Ahmed Furkan Ozkalay, Aras Mumcuyan
     model.add(Linear(out=25, input_size=x.shape[1], activation='relu'))
     model.add(Linear(out=25, activation='relu'))
     model.add(Linear(out=25, activation='relu'))
-    model.add(Linear(out=y.shape[1], activation='sigmoid'))
+    model.add(Linear(out=y.shape[1], activation='softmax'))
     
     # Setting loss from modul
     model.loss = LossMSE()
