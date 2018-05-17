@@ -48,7 +48,6 @@ class SGD(Optimizer):
 
             (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
 
-        print('validation dataset shapes: {} -- {}'.format(x_val.shape, y_val.shape))
         self._save_gradients(model, is_default=True)
 
         range_func = trange if verbose == 0 else range

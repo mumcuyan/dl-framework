@@ -9,7 +9,7 @@ this module contains list of functions for possible model construction examples
 """
 
 
-def default_net(x_all, y_all,
+def get_network(x_all, y_all,
                 num_of_hidden_layers=3,
                 loss='ce',
                 num_of_neurons=(2, 25, 25, 25, 2),
@@ -55,7 +55,37 @@ def default_net(x_all, y_all,
     return model, report
 
 
-def default_net_1(x_all, y_all,
+def get_network_ce_1(x_all, y_all,
+                    num_of_neurons=(2, 25, 2),
+                    activation='relu',
+                    lr=0.1,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
+
+    """
+    1 hidden layer, CE
+    """
+    ce = LossCrossEntropy()
+
+    model = Sequential()
+    model.add(Linear(out=num_of_neurons[1], input_size=num_of_neurons[0], activation=activation))
+    model.add(Dropout(prob=p_dropout))
+
+    model.add(Linear(out=num_of_neurons[2], activation='softmax'))
+
+    model.loss = ce
+    sgd = SGD(lr, momentum_coef, weight_decay=weight_decay)
+
+    report = sgd.train(model, x_all, y_all, num_of_epochs, val_split=val_split, verbose=verbose)
+
+    return model, report
+
+
+def get_network_ce_2(x_all, y_all,
                   num_of_neurons=(2, 25, 2),
                   activation='relu',
                   lr=0.1,
@@ -84,45 +114,16 @@ def default_net_1(x_all, y_all,
     return model, report
 
 
-def default_net_1(x_all, y_all,
-                  num_of_neurons=(2, 25, 2),
-                  activation='relu',
-                  lr=0.1,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
-    """
-    1 hidden layer, CE
-    """
-    ce = LossCrossEntropy()
-
-    model = Sequential()
-    model.add(Linear(out=num_of_neurons[1], input_size=num_of_neurons[0], activation=activation))
-    model.add(Dropout(prob=p_dropout))
-
-    model.add(Linear(out=num_of_neurons[2], activation='softmax'))
-
-    model.loss = ce
-    sgd = SGD(lr, momentum_coef, weight_decay=weight_decay)
-
-    report = sgd.train(model, x_all, y_all, num_of_epochs, val_split=val_split, verbose=verbose)
-
-    return model, report
-
-
-def default_net_2(x_all, y_all,
-                  num_of_neurons=(2, 25, 25, 2),
-                  activation='relu',
-                  lr=0.1,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
+def get_network_ce_3(x_all, y_all,
+                    num_of_neurons=(2, 25, 25, 2),
+                    activation='relu',
+                    lr=0.1,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
     """
     2 hidden layers, CE
     """
@@ -144,16 +145,16 @@ def default_net_2(x_all, y_all,
     return model, report
 
 
-def default_net_3(x_all, y_all,
-                  num_of_neurons=(2, 25, 25, 25, 2),
-                  activation='relu',
-                  lr=0.1,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
+def get_network_ce_4(x_all, y_all,
+                    num_of_neurons=(2, 25, 25, 25, 2),
+                    activation='relu',
+                    lr=0.1,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
     """
     3 hidden layers, CE
     """
@@ -177,16 +178,16 @@ def default_net_3(x_all, y_all,
     return model, report
 
 
-def default_net_4(x_all, y_all,
-                  num_of_neurons=(2, 25, 2),
-                  activation='relu',
-                  lr=0.001,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
+def get_network_mse_1(x_all, y_all,
+                    num_of_neurons=(2, 25, 2),
+                    activation='relu',
+                    lr=0.001,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
     """
     1 hidden layer, MSE
     """
@@ -205,16 +206,16 @@ def default_net_4(x_all, y_all,
     return model, report
 
 
-def default_net_5(x_all, y_all,
-                  num_of_neurons=(2, 25, 25, 2),
-                  activation='relu',
-                  lr=0.001,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
+def get_network_mse_2(x_all, y_all,
+                    num_of_neurons=(2, 25, 25, 2),
+                    activation='relu',
+                    lr=0.001,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
     """
     2 hidden layers, MSE
     """
@@ -235,15 +236,15 @@ def default_net_5(x_all, y_all,
     return model, report
 
 
-def default_net_6(x_all, y_all,
-                  num_of_neurons=(2, 25, 25, 25, 2),
-                  activation='relu', lr=0.001,
-                  momentum_coef=0.0,
-                  weight_decay=0.0,
-                  p_dropout=0.0,
-                  num_of_epochs=100,
-                  val_split=0.2,
-                  verbose=0):
+def get_network_mse_3(x_all, y_all,
+                    num_of_neurons=(2, 25, 25, 25, 2),
+                    activation='relu', lr=0.001,
+                    momentum_coef=0.0,
+                    weight_decay=0.0,
+                    p_dropout=0.0,
+                    num_of_epochs=100,
+                    val_split=0.2,
+                    verbose=0):
     """
     3 hidden layers, MSE
     """
