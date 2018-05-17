@@ -44,11 +44,13 @@ class Linear(Module):
         :param name: user-specified name can be passed to each Linear, however, this must be unique over entire network
         """
         super(Linear, self).__init__(trainable=True, name=name)
+        # input and output dimension sizes
         self.in_num = input_size
         self.out_num = out
+        # value to be stored in forward pass for later use in backward pass
         self.input = None
         self.is_bias = is_bias
-
+        
         self._params, self._grads = OrderedDict(), OrderedDict()
         self._grads["bias"], self._grads['weight'] = None, None
         self._params['bias'], self._params['weight'] = None, None
@@ -70,13 +72,15 @@ class Linear(Module):
         """
         if self.in_num is None:
             raise ValueError('Input layer size cannot be None !')
-
+        
         self._params["weight"] = torch.FloatTensor(self.in_num, self.out_num)
         self._params["bias"] = torch.FloatTensor(self.out_num) if self.is_bias else None
-
-        denominator = (self.in_num + self.out_num) if is_xavier_initialization else self.in_num
+        
+        # important for variance of initialized weight, set according to default rule of xavier's initialization
+        denominator = (self.in_num + self.out_num) if is_xavier_initialization else 2*self.in_num
         std = np.sqrt(2.0 / denominator)
-
+        
+        # initialize weight and bias from uniform distribution
         self._params["weight"].uniform_(-std, std)
         if self.is_bias:
             self._params["bias"].uniform_(-std, std)
@@ -89,10 +93,13 @@ class Linear(Module):
         :param tensor_in: calculated matrix passed by previous layer, must be 2D
         :return: computed tensor by multiplication (addiiton for bias)
         """
-
+        
+        # store input for later use in backward pass
         self.input = tensor_in
+        # linear transformation of input tensor
         tensor_out = torch.mm(tensor_in, self._params["weight"])
-
+        
+        # if bias exists, add bias as well, then transformation becomes affine
         if self.is_bias:
             tensor_out += self._params["bias"]
 
@@ -107,11 +114,15 @@ class Linear(Module):
         :return:
         """
         if self.is_bias:
+            # gradient for bias
             self._grads["bias"] = torch.mv(gradwrtoutput.transpose(0, 1), torch.ones(gradwrtoutput.shape[0]))
-
+            
+        # gradient for weight
+        # tensor stored in forward pass is used
         self._grads["weight"] = torch.mm(self.input.transpose(0, 1), gradwrtoutput)
         self.input = None # reset
-
+    
+        # gradient passed to layer before
         return torch.mm(gradwrtoutput, self._params["weight"].transpose(0, 1))
 
     def set_param(self, name, value):
@@ -133,6 +144,8 @@ class Linear(Module):
             raise ShapeException('Given shape ({}) does not match with required ({})'.
                                  format(value.shape, self._params[name]))
         
+        # if checks are okay, set specified param to given value
+        # useful for updating parameters of layer in training
         self._params[name] = value
 
     def __str__(self):
@@ -200,16 +213,26 @@ class Dropout(Module):
 
     @require_dimension(dim=2)
     def forward(self, tensor_in: torch.FloatTensor):
+        # generate tensor randomly using Bernoulli random variables
         prob_tensor = torch.FloatTensor(tensor_in.shape).fill_(self.prob)
+        # store mask for later use in backward pass
         self.mask = torch.bernoulli(prob_tensor) / self.prob  # inverted Dropout implemented
 
         return tensor_in * self.mask
 
     @require_not_none('mask')  # mask must not be None, meaning forward must be called before each call of backward
     def backward(self, gradwrtoutput):
+        # use stored mask from forward pass
         grad = gradwrtoutput * self.mask
         self.mask = None  # reset it to make sure that the last mask is
+        
+        # pass gradient to layer before
         return grad
 
     def __str__(self):
+        """
+        each Module implements __str__ function
+        This is used for printing out overview of the module for user
+        :return: string version of description Dropout layer object (including name, p_dropout)
+        """
         return "{} -p: {: .2f}".format(self.name, 1-self.prob)

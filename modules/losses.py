@@ -9,7 +9,10 @@ class Loss(Module):
         """
         :param take_avg: flag variable for whether taking avg of data-point each loss
         """
+        # set trainable to False at start, as loss modules are not trained
         super(Loss, self).__init__(trainable=False)
+        
+        # output from model and target for model
         self.out, self.target = None, None
         self.take_avg = take_avg  # or sum over all elements
 
@@ -53,9 +56,12 @@ class LossMSE(Loss):
         :param y_target: tensor.FloatTensor with same shape y_out
         :return: calculated loss as a scalar
         """
+        
+        # implements MSE using elementwise difference and pow, then takes summation over resulting matrix
         loss_val = torch.pow(y_out - y_target, 2).sum(1)
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
-
+        
+        # return loss
         return loss_val.item()
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
@@ -66,7 +72,7 @@ class LossMSE(Loss):
         """
         self.out = y_out
         self.target = y_target
-
+        
         return self(y_out, y_target)
 
     def backward(self):
@@ -75,11 +81,14 @@ class LossMSE(Loss):
         """
         if self.out is None or self.target is None:
             raise ValueError('Cannot call backward before forward function.\ntarget or input is None')
-
+        
+        # initialize incoming gradient as tensor 1
         gradwrtoutputt = torch.FloatTensor([[1]])
+        # gradient of MSE loss wrt its input, self.out in this case
         dinput = 2 * (self.out - self.target) * gradwrtoutputt
         self.reset()
-
+        
+        # return gradient
         return dinput/dinput.shape[0] if self.take_avg else dinput
 
 
@@ -97,14 +106,17 @@ class LossCrossEntropy(Loss):
         :param y_target: tensor.FloatTensor with same shape y_out
         :return: calculated loss as a scalar
         """
+        
         eps = 1e-6
         y_out.clamp_(min=eps)  # set each element to at least eps for numerical stability in log
         log_y_out = torch.log(y_out)
-        log_y_out[log_y_out != log_y_out] = 0 # set NaNs to 0
-        loss_val = - log_y_out * y_target  # N x 2 dim tensor
+        log_y_out[log_y_out != log_y_out] = 0 # set possible NaNs to 0
+        loss_val = - log_y_out * y_target  # calculate cross-entropy loss elementwise
 
         loss_val = loss_val.sum(1)  # loss per row  N x 1 dim tensor
         loss_val = loss_val.mean(0) if self.take_avg else loss_val.sum()
+        
+        # return loss
         return loss_val.item()
 
     def forward(self, y_out: torch.FloatTensor, y_target: torch.FloatTensor):
@@ -116,6 +128,7 @@ class LossCrossEntropy(Loss):
         # CHECK: given y_out must be a prob distribution e.g: softmax
         row_sum = np.around(y_out.sum(1).numpy()).astype(int)
         ones = np.ones_like(row_sum, dtype=int)
+        # check if input is proper probability distribution
         assert np.array_equal(row_sum, ones)
 
         self.out = y_out
@@ -130,8 +143,12 @@ class LossCrossEntropy(Loss):
         is used in final activation function in the network
         :return: derivative of categorical crossentropy (combined with softmax layer)
         """
+        
+        # initialize incoming gradient as tensor 1
         gradwrtoutputt = torch.FloatTensor([[1]])
+        #  gradient of cross-entropy and softmax together
         dinput = (self.out - self.target) * gradwrtoutputt
         self.reset()
-
+        
+        # return gradient of loss wrt its input, self.out in this case
         return dinput/dinput.shape[0] if self.take_avg else dinput

@@ -20,6 +20,8 @@ class Sequential(Module):
         :param loss_func: is a Loss defined in losses.py which will be called for loss calculation
         """
         super(Sequential, self).__init__(trainable=False)
+        
+        # modules
         self._modules = OrderedDict()
         self.layer_sizes = []
         if modules is not None:
@@ -29,7 +31,8 @@ class Sequential(Module):
             else:
                 raise TypeError('Given parameter type {} is invalid, required: {} '
                                 .format(type(modules), "collections.Sequence"))
-
+        
+        # loss function
         self._loss = loss_func
 
     def add(self, module: Module):
@@ -56,7 +59,8 @@ class Sequential(Module):
 
             module.initialize()
             self.layer_sizes.append(getattr(module, 'output_size'))
-
+        
+        # if checks are OK, add module to Sequential with default name
         default_name = str(len(self._modules)) + "_" + module.__class__.__name__
         module.name = default_name
         self._modules[default_name] = module
@@ -75,11 +79,15 @@ class Sequential(Module):
         :param y_input: if this parameter passed, this function is used for training, if not it is test or prediction
         :return: predicted values for given dataset (x_input) based on network
         """
+        
+        # check if train or test
         train = y_input is not None
         y_pred = x_input
         for module in self._modules.values():
+            # handle train and test for Dropout diffrently, if test no forward for Dropout is needed
             if isinstance(module, Dropout) and not train:
                 continue
+            # take forward pass for each module in Sequential
             y_pred = module.forward(y_pred)
 
         if train:  # calculate loss for training
@@ -91,8 +99,10 @@ class Sequential(Module):
         """
         start backward propogation in reverse order, each module takes gradient wrt to output
         """
-
+        
+        # gradient of loss wrt output of model
         gradwrtoutputt = self._loss.backward()
+        # take backward pass for each module in Sequential, gradients are stored in attributes of each module
         for module in reversed(list(self._modules.values())):
             gradwrtoutputt = module.backward(gradwrtoutputt)
 
@@ -104,7 +114,8 @@ class Sequential(Module):
         """
         if not torch.is_tensor(x_test):
             raise TypeError('Given x_test parameter must be torch.Tensor !')
-
+        
+        # make prediction on given data
         y_pred = self.forward(x_test)
         return y_pred if not convert_label else y_pred.max(1)[1]
 
@@ -120,10 +131,12 @@ class Sequential(Module):
         """
         if not torch.is_tensor(y_test):
             raise TypeError('Given x_test parameter must be torch.Tensor !')
-
+        
+        # make prediction on given data
         y_pred = self.predict(x_test)
+        # calculate loss for prediction
         loss_val = self._loss(y_pred, y_test)
-
+        # calculate accuracy for prediction
         acc_val = self.accuracy(one_hot2label(y_pred), one_hot2label(y_test))
 
         if not return_pred:
@@ -133,49 +146,74 @@ class Sequential(Module):
 
     def save_to_disk(self, filename, is_save_to_disk=True):
         """
-        ????
-        :param filename: ???
-        :param is_save_to_disk: ????
-        :return: ???
+        Save model to disk in JSON file format with given filename
+        
+        :param filename: str, filename
+        :param is_save_to_disk: flag variable for save to disk or return params of each module as OrderedDict
+        :return: params of each module as OrderedDict
         """
+        
+        # initialize dump
         dump = OrderedDict()
+        # initialize all_params
         all_params = OrderedDict()
+        # traverse each module in Sequential
         for name_module, module in self._modules.items():
+            # temporary OrderedDict
             param_dict = OrderedDict()
+            # traverse each param of module
             for name_param, param in module.params:  # go over weight and bias (if not None)
+                # add them to temporary OrderedDict
                 param_dict[name_param] = param.data.numpy().tolist()
-            if "Dropout" in name_module:
+            # if module is of type Dropout, handle differently
+            if isinstance(module, Dropout):
+                # save probability of dropout to dict as well
                 param_dict["p_dropout"] = 1 - module.prob
+            # store OrderedDictionary of params of module in all_params
             all_params[name_module] = param_dict
         
+        # save loss function for model
         dump["loss"] = 'MSE' if isinstance(self.loss, LossMSE) else 'CE'
+        # save all params of all modules
         dump["modules"] = all_params
         
+        
+        # if save to disk
         if is_save_to_disk:
+            # save as JSON file
             with open(filename, 'w') as f:
-                json.dump(dump, f)      
+                json.dump(dump, f) 
+        # return dictionary of all params
         else:
             return all_params
 
     @classmethod
     def load_from_disk(cls, filename):
         """
-        ???
-        :param filename: ??
-        :return: ???
+        Load model from disk in JSON file format with given filename
+        
+        :param filename: str, filename
+        :return: Sequential, model that is loaded
         """
         
+        # load JSON file
         with open(filename) as f:
             dump = json.load(f)
         
+        # take loss
         loss = dump["loss"]
+        # take all params
         all_params = dump["modules"]
+        # initialize model
         model = cls()
-
+        
+        # traverse dictionary of all parameters
         for name_module, module_params in all_params.items():
+            # check names and find type of modules
             char_index = name_module.find('_')
             module_type = name_module[char_index+1:]
             
+            # handle differently according to type of module
             if module_type == "Linear":
                 casted_param = torch.from_numpy(np.array(module_params['weight'])).type(torch.FloatTensor)
                 module = Linear(out=casted_param.shape[1], input_size=casted_param.shape[0])
@@ -189,7 +227,8 @@ class Sequential(Module):
                 module = Softmax()
             else:
                 raise ValueError('Given module_type {} is not valid !'.format(module_type))
-
+            
+            # add recovered module to model
             model.add(module)
             
             if module_type == "Linear":
@@ -197,6 +236,7 @@ class Sequential(Module):
                     casted_param = torch.from_numpy(np.array(param)).type(torch.FloatTensor)
                     model._modules[name_module].set_param(name_param, casted_param)
         
+        # add loss to model
         model.loss = LossMSE() if loss == 'MSE' else LossCrossEntropy()
 
     def __eq__(self, other):
@@ -210,7 +250,7 @@ class Sequential(Module):
             if module != other_module:
                 return False
 
-        # add loss layer as well ?
+        # it does not compare loss attribute
         return True
 
     def __str__(self):
@@ -239,7 +279,8 @@ class Sequential(Module):
         """
         if not torch.is_tensor(y_test):
             raise TypeError('Given x_test parameter must be torch.Tensor !')
-
+        
+        # return accuracy for given predicted target and actual targets
         return (y_pred == y_test).type(torch.FloatTensor).mean().item()
 
     def print_model(self):
@@ -255,6 +296,7 @@ class Sequential(Module):
 
     @loss.setter
     def loss(self, loss_func):
+        # set loss function
         self._loss = loss_func
 
     @property
@@ -268,6 +310,7 @@ class Sequential(Module):
         trainable attribute used for getting
         :return:
         """
+        # generator for trainable modules
         for module in self._modules.values():
             if module.trainable:
                 yield module

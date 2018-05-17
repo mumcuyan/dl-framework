@@ -36,7 +36,8 @@ class SGD(Optimizer):
         if val_split <= 0 or val_split >= 1:
             raise ValueError('validation_split ratio must be between 0 and 1 (exclusive), given {}'
                              .format(val_split))
-
+        
+        # split data as training and validation
         (x_train, y_train), (x_val, y_val) = split_data(x_train, y_train, val_split=val_split, is_shuffle=True)
         self._save_gradients(model, is_default=True)
 
@@ -44,6 +45,7 @@ class SGD(Optimizer):
         for i in range_func(num_of_epochs):
 
             for x_train_batch, y_train_batch in batch(x_train, y_train, batch_size=batch_size):  # go through each batch
+                # update parameters using current batch
                 self._update_params(model, x_train_batch, y_train_batch)
 
             # After epoch is done, evaluate performance of the model simply calling evaluation on
@@ -67,21 +69,31 @@ class SGD(Optimizer):
         :param x_train: batch size of x_train vals
         :param y_train: batch size of corresponding y_train vals
         """
+        
+        # forward pass of model
         model.forward(x_train, y_train)
+        # backward pass of model
         model.backward()
+        # now each module has log of gradient of each of its parameters
 
-        for i, module in enumerate(model.trainable_modules):  # go over fully connected layers
+        for i, module in enumerate(model.trainable_modules):  # go over trainable modules (linear layers)
             for name, param in module.params:  # go over weight and bias (if not None)
+                # take corresponding gradient as update
                 update = module.grads[name]
-
-                if self.weight_decay > 0:  # L2 regularization to gradients
+                
+                if self.weight_decay > 0:  # L2 regularization for weights by weight decaying
+                    # some fraction of parameter is added to update
                     update += self.weight_decay * module.grads[name]
 
                 if self.momentum_coef > 0:
+                    # add fraction of logged gradient from previous update to update, as momentum
                     update += self.momentum_coef * self.log_grad[i][name]
+                    # log the gradient for later use, for momentum
                     self.log_grad[i][name] = module.grads[name]
-
+                
+                # find new value of parameter
                 new_param = param - self.lr * update
+                # set module's corresponding parameter to new value
                 module.set_param(name, new_param)
 
     def _save_gradients(self, model: Sequential, is_default=False):
@@ -90,8 +102,13 @@ class SGD(Optimizer):
         :param is_default:
         :return:
         """
+        
+        # traverse each trainable module
         for i, module in enumerate(model.trainable_modules):
+            # initialize log for gradients as OrderedDict
             self.log_grad[i] = OrderedDict()
-
+            
+            # traverse each param for module
             for name, param in module.params:
+                # log gradient
                 self.log_grad[i][name] = 0 if is_default else module.grads[name]
