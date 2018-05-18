@@ -2,7 +2,18 @@
 
 Ahmed Furkan Ozkalay, Aras Mumcuyan
 
-### Quick start
+### Execution
+You can command (without arguments)
+    
+    python test.py 
+    
+However, you can also specify loss as categorical cross-entropy for the same model architecture.
+
+    python test.py -l ce  (categorical crossentropy)
+    python test.py -l mse (default: mean square error)
+
+
+### Quick start 
      
     # Dataset
     x: torch.FloatTensor  # N x feature_number
@@ -47,5 +58,15 @@ Ahmed Furkan Ozkalay, Aras Mumcuyan
     
     # to access docker environment terminal
          docker run -v "$(pwd):/app" -it dl-framework /bin/bash
+         
+### Testing
+
+We have also written small unit tests for some functions we have implemented.
+If you'd like to see its report you can command following
+    
+    make test 
+    
+Note: It requires nosetests package
+
      
  
